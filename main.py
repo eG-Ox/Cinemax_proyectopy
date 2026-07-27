@@ -1,4 +1,5 @@
 from config.logger import Logger
+from config.persistencia import cargar_usuarios, guardar_usuarios
 from config.sistema_config import SistemaConfig
 from dao.usuario_dao import UsuarioDAO
 from vistas.menu import mostrar_menu, agregar_usuario, listar_usuarios
@@ -9,6 +10,7 @@ def main():
     udao = UsuarioDAO()
 
     Logger().info(f"Aplicacion cinemax abierta: {cfg.nombre} v{cfg.version}")
+    cargar_usuarios(udao)
 
     while True:
         mostrar_menu(cfg)
@@ -19,6 +21,7 @@ def main():
             case "2":
                 listar_usuarios(udao)
             case "0":
+                guardar_usuarios(udao)
                 Logger().info("Sistema cerrado por el usuario")
                 print("\n Hasta luego.")
                 break
