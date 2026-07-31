@@ -1,23 +1,29 @@
 from config.logger import Logger
 from config.persistencia import cargar_todo, guardar_todo
 from config.sistema_config import SistemaConfig
+from dao.funcion_dao import FuncionDAO
 from dao.pelicula_dao import PeliculaDAO
 from dao.sala_dao import SalaDAO
 from dao.usuario_dao import UsuarioDAO
 from vistas.menu import (
+    actualizar_funcion,
     actualizar_pelicula,
     actualizar_sala,
     actualizar_usuario,
+    agregar_funcion,
     agregar_pelicula,
     agregar_sala,
     agregar_usuario,
+    eliminar_funcion,
     eliminar_pelicula,
     eliminar_sala,
     eliminar_usuario,
+    listar_funciones,
     listar_peliculas,
     listar_salas,
     listar_usuarios,
     mostrar_menu,
+    ver_funciones_json,
     ver_peliculas_json,
     ver_salas_json,
     ver_usuarios_json,
@@ -29,9 +35,10 @@ def main():
     udao = UsuarioDAO()
     pdao = PeliculaDAO()
     sdao = SalaDAO()
+    fdao = FuncionDAO()
 
     Logger().info(f"Aplicacion cinemax abierta: {cfg.nombre} v{cfg.version}")
-    cargar_todo(udao, pdao, sdao)
+    cargar_todo(udao, pdao, sdao, fdao)
 
     while True:
         mostrar_menu(cfg)
@@ -44,44 +51,54 @@ def main():
             case "3":
                 agregar_sala(sdao)
             case "4":
-                listar_usuarios(udao)
+                agregar_funcion(fdao, pdao, sdao)
             case "5":
-                listar_peliculas(pdao)
+                listar_usuarios(udao)
             case "6":
-                listar_salas(sdao)
+                listar_peliculas(pdao)
             case "7":
-                actualizar_usuario(udao)
+                listar_salas(sdao)
             case "8":
-                actualizar_pelicula(pdao)
+                listar_funciones(fdao)
             case "9":
-                actualizar_sala(sdao)
+                actualizar_usuario(udao)
             case "10":
-                eliminar_usuario(udao)
+                actualizar_pelicula(pdao)
             case "11":
-                eliminar_pelicula(pdao)
+                actualizar_sala(sdao)
             case "12":
-                eliminar_sala(sdao)
+                actualizar_funcion(fdao, pdao, sdao)
             case "13":
-                ver_usuarios_json(udao)
+                eliminar_usuario(udao)
             case "14":
-                ver_peliculas_json(pdao)
+                eliminar_pelicula(pdao)
             case "15":
-                ver_salas_json(sdao)
+                eliminar_sala(sdao)
             case "16":
-                guardar_todo(udao, pdao, sdao)
-                print(" OK Datos guardados en JSON")
+                eliminar_funcion(fdao)
             case "17":
-                Logger().mostrar_logs()
+                ver_usuarios_json(udao)
             case "18":
+                ver_peliculas_json(pdao)
+            case "19":
+                ver_salas_json(sdao)
+            case "20":
+                ver_funciones_json(fdao)
+            case "21":
+                guardar_todo(udao, pdao, sdao, fdao)
+                print(" OK Datos guardados en JSON")
+            case "22":
+                Logger().mostrar_logs()
+            case "23":
                 Logger().limpiar()
                 print(" OK Historial de logs limpiado")
             case "0":
-                guardar_todo(udao, pdao, sdao)
+                guardar_todo(udao, pdao, sdao, fdao)
                 Logger().info("Sistema cerrado por el usuario")
                 print("\n Hasta luego.")
                 break
             case _:
-                print(" Opcion no valida, elige entre 0 y 18")
+                print(" Opcion no valida, elige entre 0 y 23")
 
 
 if __name__ == "__main__":

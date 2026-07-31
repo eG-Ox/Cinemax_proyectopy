@@ -1,11 +1,25 @@
 import json
+from datetime import date, time
 
+from dao.funcion_dao import FuncionNoEncontradaError, ReferenciaInvalidaError
 from dao.pelicula_dao import PeliculaNoEncontradaError
 from dao.sala_dao import SalaNoEncontradaError
 from dao.usuario_dao import CorreoDuplicadoError, UsuarioNoEncontradoError
+from modelos.funcion import Funcion
 from modelos.pelicula import Pelicula
 from modelos.sala import Sala
 from modelos.usuario import Usuario
+
+
+def _leer_fecha(texto):
+    return date.fromisoformat(texto)
+
+
+def _leer_hora(texto):
+    texto = texto.strip()
+    if len(texto) == 5:
+        texto = f"{texto}:00"
+    return time.fromisoformat(texto)
 
 
 def mostrar_menu(cfg):
@@ -16,21 +30,26 @@ def mostrar_menu(cfg):
     print(" 1. Agregar usuario")
     print(" 2. Agregar pelicula")
     print(" 3. Agregar sala")
-    print(" 4. Listar usuarios")
-    print(" 5. Listar peliculas")
-    print(" 6. Listar salas")
-    print(" 7. Actualizar usuario")
-    print(" 8. Actualizar pelicula")
-    print(" 9. Actualizar sala")
-    print(" 10. Eliminar usuario")
-    print(" 11. Eliminar pelicula")
-    print(" 12. Eliminar sala")
-    print(" 13. Ver usuarios en JSON")
-    print(" 14. Ver peliculas en JSON")
-    print(" 15. Ver salas en JSON")
-    print(" 16. Guardar datos en JSON")
-    print(" 17. Show historial de logs")
-    print(" 18. Limpiar historial de logs")
+    print(" 4. Agregar funcion")
+    print(" 5. Listar usuarios")
+    print(" 6. Listar peliculas")
+    print(" 7. Listar salas")
+    print(" 8. Listar funciones")
+    print(" 9. Actualizar usuario")
+    print(" 10. Actualizar pelicula")
+    print(" 11. Actualizar sala")
+    print(" 12. Actualizar funcion")
+    print(" 13. Eliminar usuario")
+    print(" 14. Eliminar pelicula")
+    print(" 15. Eliminar sala")
+    print(" 16. Eliminar funcion")
+    print(" 17. Ver usuarios en JSON")
+    print(" 18. Ver peliculas en JSON")
+    print(" 19. Ver salas en JSON")
+    print(" 20. Ver funciones en JSON")
+    print(" 21. Guardar datos en JSON")
+    print(" 22. Show historial de logs")
+    print(" 23. Limpiar historial de logs")
     print(" 0. Salir")
     print(f"{'=' * 45}")
 
@@ -70,6 +89,22 @@ def agregar_sala(sdao):
         print(" ERROR: La capacidad debe ser un numero entero")
 
 
+def agregar_funcion(fdao, pdao, sdao):
+    print("\n--- AGREGAR FUNCION ---")
+    try:
+        id_pelicula = int(input(" ID de pelicula : "))
+        id_sala = int(input(" ID de sala : "))
+        fecha_funcion = _leer_fecha(input(" Fecha (YYYY-MM-DD) : "))
+        hora = _leer_hora(input(" Hora (HH:MM o HH:MM:SS) : "))
+        precio = float(input(" Precio : "))
+        funcion = fdao.insertar(Funcion(id_pelicula, id_sala, fecha_funcion, hora, precio), pdao, sdao)
+        print(f" OK Funcion agregada con ID={funcion.id}")
+    except ValueError:
+        print(" ERROR: Verifica que los numeros, fecha y hora sean validos")
+    except ReferenciaInvalidaError as ex:
+        print(f" ERROR: {ex}")
+
+
 def listar_usuarios(udao):
     print("\n--- USUARIOS ---")
     usuarios = udao.obtener_todos()
@@ -98,6 +133,16 @@ def listar_salas(sdao):
             print(f" {sala}")
     else:
         print(" (No hay salas registradas)")
+
+
+def listar_funciones(fdao):
+    print("\n--- FUNCIONES ---")
+    funciones = fdao.obtener_todos()
+    if funciones:
+        for funcion in funciones:
+            print(f" {funcion}")
+    else:
+        print(" (No hay funciones registradas)")
 
 
 def actualizar_usuario(udao):
@@ -146,6 +191,32 @@ def actualizar_sala(sdao):
         print(" ERROR: El ID y la capacidad deben ser validos")
 
 
+def actualizar_funcion(fdao, pdao, sdao):
+    print("\n--- ACTUALIZAR FUNCION ---")
+    try:
+        funcion_id = int(input(" ID de la funcion a actualizar: "))
+        id_pelicula_str = input(" Nuevo ID de pelicula (Enter para no cambiar): ").strip()
+        id_sala_str = input(" Nuevo ID de sala (Enter para no cambiar): ").strip()
+        fecha_str = input(" Nueva fecha (YYYY-MM-DD, Enter para no cambiar): ").strip()
+        hora_str = input(" Nueva hora (HH:MM o HH:MM:SS, Enter para no cambiar): ").strip()
+        precio_str = input(" Nuevo precio (Enter para no cambiar): ").strip()
+        funcion = fdao.actualizar(
+            funcion_id,
+            int(id_pelicula_str) if id_pelicula_str else None,
+            int(id_sala_str) if id_sala_str else None,
+            _leer_fecha(fecha_str) if fecha_str else None,
+            _leer_hora(hora_str) if hora_str else None,
+            float(precio_str) if precio_str else None,
+            pelicula_dao=pdao,
+            sala_dao=sdao,
+        )
+        print(f" OK Funcion actualizada: {funcion}")
+    except (FuncionNoEncontradaError, ReferenciaInvalidaError) as ex:
+        print(f" ERROR: {ex}")
+    except ValueError:
+        print(" ERROR: Verifica que los datos sean validos")
+
+
 def eliminar_usuario(udao):
     print("\n--- ELIMINAR USUARIO ---")
     try:
@@ -182,6 +253,18 @@ def eliminar_sala(sdao):
         print(" ERROR: El ID debe ser un numero entero")
 
 
+def eliminar_funcion(fdao):
+    print("\n--- ELIMINAR FUNCION ---")
+    try:
+        funcion_id = int(input(" ID de la funcion a eliminar: "))
+        fdao.eliminar(funcion_id)
+        print(f" OK Funcion ID={funcion_id} eliminada")
+    except FuncionNoEncontradaError as ex:
+        print(f" ERROR: {ex}")
+    except ValueError:
+        print(" ERROR: El ID debe ser un numero entero")
+
+
 def ver_usuarios_json(udao):
     print("\n--- USUARIOS EN JSON ---")
     usuarios = udao.obtener_todos()
@@ -207,3 +290,12 @@ def ver_salas_json(sdao):
         print(json.dumps([sala.to_dict() for sala in salas], indent=4, ensure_ascii=False))
     else:
         print(" (No hay salas registradas)")
+
+
+def ver_funciones_json(fdao):
+    print("\n--- FUNCIONES EN JSON ---")
+    funciones = fdao.obtener_todos()
+    if funciones:
+        print(json.dumps([funcion.to_dict() for funcion in funciones], indent=4, ensure_ascii=False))
+    else:
+        print(" (No hay funciones registradas)")
