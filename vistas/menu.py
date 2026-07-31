@@ -1,14 +1,16 @@
 import json
-from datetime import date, time
+from datetime import date, datetime, time
 
 from dao.funcion_dao import FuncionNoEncontradaError, ReferenciaInvalidaError
 from dao.pelicula_dao import PeliculaNoEncontradaError
 from dao.sala_dao import SalaNoEncontradaError
 from dao.usuario_dao import CorreoDuplicadoError, UsuarioNoEncontradoError
+from dao.venta_dao import ReferenciaUsuarioInvalidaError, VentaNoEncontradaError
 from modelos.funcion import Funcion
 from modelos.pelicula import Pelicula
 from modelos.sala import Sala
 from modelos.usuario import Usuario
+from modelos.venta import Venta
 
 
 def _leer_fecha(texto):
@@ -20,6 +22,13 @@ def _leer_hora(texto):
     if len(texto) == 5:
         texto = f"{texto}:00"
     return time.fromisoformat(texto)
+
+
+def _leer_datetime(texto):
+    texto = texto.strip()
+    if len(texto) == 16:
+        texto = f"{texto}:00"
+    return datetime.fromisoformat(texto)
 
 
 def mostrar_menu(cfg):
@@ -50,6 +59,11 @@ def mostrar_menu(cfg):
     print(" 21. Guardar datos en JSON")
     print(" 22. Show historial de logs")
     print(" 23. Limpiar historial de logs")
+    print(" 24. Agregar venta")
+    print(" 25. Listar ventas")
+    print(" 26. Actualizar venta")
+    print(" 27. Eliminar venta")
+    print(" 28. Ver ventas en JSON")
     print(" 0. Salir")
     print(f"{'=' * 45}")
 
@@ -105,6 +119,19 @@ def agregar_funcion(fdao, pdao, sdao):
         print(f" ERROR: {ex}")
 
 
+def agregar_venta(vdao, udao):
+    print("\n--- AGREGAR VENTA ---")
+    try:
+        id_usuario = int(input(" ID de usuario : "))
+        fecha_compra = _leer_datetime(input(" Fecha compra (YYYY-MM-DD HH:MM o HH:MM:SS) : "))
+        venta = vdao.insertar(Venta(id_usuario, fecha_compra), udao)
+        print(f" OK Venta agregada con ID={venta.id}")
+    except ValueError:
+        print(" ERROR: Verifica que el ID y la fecha sean validos")
+    except ReferenciaUsuarioInvalidaError as ex:
+        print(f" ERROR: {ex}")
+
+
 def listar_usuarios(udao):
     print("\n--- USUARIOS ---")
     usuarios = udao.obtener_todos()
@@ -143,6 +170,16 @@ def listar_funciones(fdao):
             print(f" {funcion}")
     else:
         print(" (No hay funciones registradas)")
+
+
+def listar_ventas(vdao):
+    print("\n--- VENTAS ---")
+    ventas = vdao.obtener_todos()
+    if ventas:
+        for venta in ventas:
+            print(f" {venta}")
+    else:
+        print(" (No hay ventas registradas)")
 
 
 def actualizar_usuario(udao):
@@ -217,6 +254,25 @@ def actualizar_funcion(fdao, pdao, sdao):
         print(" ERROR: Verifica que los datos sean validos")
 
 
+def actualizar_venta(vdao, udao):
+    print("\n--- ACTUALIZAR VENTA ---")
+    try:
+        venta_id = int(input(" ID de la venta a actualizar: "))
+        id_usuario_str = input(" Nuevo ID de usuario (Enter para no cambiar): ").strip()
+        fecha_str = input(" Nueva fecha compra (YYYY-MM-DD HH:MM o HH:MM:SS, Enter para no cambiar): ").strip()
+        venta = vdao.actualizar(
+            venta_id,
+            int(id_usuario_str) if id_usuario_str else None,
+            _leer_datetime(fecha_str) if fecha_str else None,
+            usuario_dao=udao,
+        )
+        print(f" OK Venta actualizada: {venta}")
+    except (VentaNoEncontradaError, ReferenciaUsuarioInvalidaError) as ex:
+        print(f" ERROR: {ex}")
+    except ValueError:
+        print(" ERROR: Verifica que los datos sean validos")
+
+
 def eliminar_usuario(udao):
     print("\n--- ELIMINAR USUARIO ---")
     try:
@@ -265,6 +321,18 @@ def eliminar_funcion(fdao):
         print(" ERROR: El ID debe ser un numero entero")
 
 
+def eliminar_venta(vdao):
+    print("\n--- ELIMINAR VENTA ---")
+    try:
+        venta_id = int(input(" ID de la venta a eliminar: "))
+        vdao.eliminar(venta_id)
+        print(f" OK Venta ID={venta_id} eliminada")
+    except VentaNoEncontradaError as ex:
+        print(f" ERROR: {ex}")
+    except ValueError:
+        print(" ERROR: El ID debe ser un numero entero")
+
+
 def ver_usuarios_json(udao):
     print("\n--- USUARIOS EN JSON ---")
     usuarios = udao.obtener_todos()
@@ -299,3 +367,12 @@ def ver_funciones_json(fdao):
         print(json.dumps([funcion.to_dict() for funcion in funciones], indent=4, ensure_ascii=False))
     else:
         print(" (No hay funciones registradas)")
+
+
+def ver_ventas_json(vdao):
+    print("\n--- VENTAS EN JSON ---")
+    ventas = vdao.obtener_todos()
+    if ventas:
+        print(json.dumps([venta.to_dict() for venta in ventas], indent=4, ensure_ascii=False))
+    else:
+        print(" (No hay ventas registradas)")

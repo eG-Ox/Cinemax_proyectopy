@@ -5,28 +5,34 @@ from dao.funcion_dao import FuncionDAO
 from dao.pelicula_dao import PeliculaDAO
 from dao.sala_dao import SalaDAO
 from dao.usuario_dao import UsuarioDAO
+from dao.venta_dao import VentaDAO
 from vistas.menu import (
     actualizar_funcion,
     actualizar_pelicula,
     actualizar_sala,
     actualizar_usuario,
+    actualizar_venta,
     agregar_funcion,
     agregar_pelicula,
     agregar_sala,
     agregar_usuario,
+    agregar_venta,
     eliminar_funcion,
     eliminar_pelicula,
     eliminar_sala,
     eliminar_usuario,
+    eliminar_venta,
     listar_funciones,
     listar_peliculas,
     listar_salas,
     listar_usuarios,
+    listar_ventas,
     mostrar_menu,
     ver_funciones_json,
     ver_peliculas_json,
     ver_salas_json,
     ver_usuarios_json,
+    ver_ventas_json,
 )
 
 
@@ -36,9 +42,10 @@ def main():
     pdao = PeliculaDAO()
     sdao = SalaDAO()
     fdao = FuncionDAO()
+    vdao = VentaDAO()
 
     Logger().info(f"Aplicacion cinemax abierta: {cfg.nombre} v{cfg.version}")
-    cargar_todo(udao, pdao, sdao, fdao)
+    cargar_todo(udao, pdao, sdao, fdao, vdao)
 
     while True:
         mostrar_menu(cfg)
@@ -85,20 +92,30 @@ def main():
             case "20":
                 ver_funciones_json(fdao)
             case "21":
-                guardar_todo(udao, pdao, sdao, fdao)
+                guardar_todo(udao, pdao, sdao, fdao, vdao)
                 print(" OK Datos guardados en JSON")
             case "22":
                 Logger().mostrar_logs()
             case "23":
                 Logger().limpiar()
                 print(" OK Historial de logs limpiado")
+            case "24":
+                agregar_venta(vdao, udao)
+            case "25":
+                listar_ventas(vdao)
+            case "26":
+                actualizar_venta(vdao, udao)
+            case "27":
+                eliminar_venta(vdao)
+            case "28":
+                ver_ventas_json(vdao)
             case "0":
-                guardar_todo(udao, pdao, sdao, fdao)
+                guardar_todo(udao, pdao, sdao, fdao, vdao)
                 Logger().info("Sistema cerrado por el usuario")
                 print("\n Hasta luego.")
                 break
             case _:
-                print(" Opcion no valida, elige entre 0 y 23")
+                print(" Opcion no valida, elige entre 0 y 28")
 
 
 if __name__ == "__main__":
