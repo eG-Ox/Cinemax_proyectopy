@@ -5,6 +5,7 @@ from modelos.funcion import Funcion
 from modelos.pelicula import Pelicula
 from modelos.sala import Sala
 from modelos.usuario import Usuario
+from modelos.venta import Venta
 
 
 _BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -13,6 +14,7 @@ ARCHIVO_USUARIOS = os.path.join(_BASE, "datos_usuarios.json")
 ARCHIVO_PELICULAS = os.path.join(_BASE, "datos_peliculas.json")
 ARCHIVO_SALAS = os.path.join(_BASE, "datos_salas.json")
 ARCHIVO_FUNCIONES = os.path.join(_BASE, "datos_funciones.json")
+ARCHIVO_VENTAS = os.path.join(_BASE, "datos_ventas.json")
 
 
 def _guardar(archivo, objetos):
@@ -43,6 +45,10 @@ def guardar_salas(sdao):
 
 def guardar_funciones(fdao):
     _guardar(ARCHIVO_FUNCIONES, fdao.obtener_todos())
+
+
+def guardar_ventas(vdao):
+    _guardar(ARCHIVO_VENTAS, vdao.obtener_todos())
 
 
 def cargar_usuarios(udao):
@@ -81,17 +87,30 @@ def cargar_funciones(fdao):
             fdao._FuncionDAO__cid = funcion.id + 1
 
 
-def guardar_todo(udao, pdao, sdao, fdao=None):
+def cargar_ventas(vdao):
+    datos = _cargar(ARCHIVO_VENTAS)
+    for item in datos:
+        venta = Venta.from_dict(item)
+        vdao._VentaDAO__bd.append(venta)
+        if venta.id >= vdao._VentaDAO__cid:
+            vdao._VentaDAO__cid = venta.id + 1
+
+
+def guardar_todo(udao, pdao, sdao, fdao=None, vdao=None):
     guardar_usuarios(udao)
     guardar_peliculas(pdao)
     guardar_salas(sdao)
     if fdao is not None:
         guardar_funciones(fdao)
+    if vdao is not None:
+        guardar_ventas(vdao)
 
 
-def cargar_todo(udao, pdao, sdao, fdao=None):
+def cargar_todo(udao, pdao, sdao, fdao=None, vdao=None):
     cargar_usuarios(udao)
     cargar_peliculas(pdao)
     cargar_salas(sdao)
     if fdao is not None:
         cargar_funciones(fdao)
+    if vdao is not None:
+        cargar_ventas(vdao)
