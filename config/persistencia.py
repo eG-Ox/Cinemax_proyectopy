@@ -1,6 +1,7 @@
 import json
 import os
 
+from modelos.detalle_venta import DetalleVenta
 from modelos.funcion import Funcion
 from modelos.pelicula import Pelicula
 from modelos.sala import Sala
@@ -15,6 +16,7 @@ ARCHIVO_PELICULAS = os.path.join(_BASE, "datos_peliculas.json")
 ARCHIVO_SALAS = os.path.join(_BASE, "datos_salas.json")
 ARCHIVO_FUNCIONES = os.path.join(_BASE, "datos_funciones.json")
 ARCHIVO_VENTAS = os.path.join(_BASE, "datos_ventas.json")
+ARCHIVO_DETALLES = os.path.join(_BASE, "datos_detalles_venta.json")
 
 
 def _guardar(archivo, objetos):
@@ -49,6 +51,10 @@ def guardar_funciones(fdao):
 
 def guardar_ventas(vdao):
     _guardar(ARCHIVO_VENTAS, vdao.obtener_todos())
+
+
+def guardar_detalles(ddao):
+    _guardar(ARCHIVO_DETALLES, ddao.obtener_todos())
 
 
 def cargar_usuarios(udao):
@@ -96,7 +102,16 @@ def cargar_ventas(vdao):
             vdao._VentaDAO__cid = venta.id + 1
 
 
-def guardar_todo(udao, pdao, sdao, fdao=None, vdao=None):
+def cargar_detalles(ddao):
+    datos = _cargar(ARCHIVO_DETALLES)
+    for item in datos:
+        detalle = DetalleVenta.from_dict(item)
+        ddao._DetalleVentaDAO__bd.append(detalle)
+        if detalle.id >= ddao._DetalleVentaDAO__cid:
+            ddao._DetalleVentaDAO__cid = detalle.id + 1
+
+
+def guardar_todo(udao, pdao, sdao, fdao=None, vdao=None, ddao=None):
     guardar_usuarios(udao)
     guardar_peliculas(pdao)
     guardar_salas(sdao)
@@ -104,9 +119,11 @@ def guardar_todo(udao, pdao, sdao, fdao=None, vdao=None):
         guardar_funciones(fdao)
     if vdao is not None:
         guardar_ventas(vdao)
+    if ddao is not None:
+        guardar_detalles(ddao)
 
 
-def cargar_todo(udao, pdao, sdao, fdao=None, vdao=None):
+def cargar_todo(udao, pdao, sdao, fdao=None, vdao=None, ddao=None):
     cargar_usuarios(udao)
     cargar_peliculas(pdao)
     cargar_salas(sdao)
@@ -114,3 +131,5 @@ def cargar_todo(udao, pdao, sdao, fdao=None, vdao=None):
         cargar_funciones(fdao)
     if vdao is not None:
         cargar_ventas(vdao)
+    if ddao is not None:
+        cargar_detalles(ddao)
