@@ -19,6 +19,6 @@ class Venta:
 
     @classmethod
     def from_dict(cls, datos):
-        venta = cls(datos["id_usuario"], datetime.fromisoformat(datos["fecha_compra"]))
-        venta.id = datos.get("id")
-        return venta
+        v = cls(datos["id_usuario"], datetime.fromisoformat(datos["fecha_compra"]))
+        v.id = datos.get("id")
+        return v

@@ -23,11 +23,11 @@ class DetalleVenta:
 
     @classmethod
     def from_dict(cls, datos):
-        detalle = cls(
+        d = cls(
             datos["id_venta"],
             datos["id_funcion"],
             datos["asiento"],
             datos["codigo_boleto"],
         )
-        detalle.id = datos.get("id")
-        return detalle
+        d.id = datos.get("id")
+        return d

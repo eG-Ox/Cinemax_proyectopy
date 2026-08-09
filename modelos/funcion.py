@@ -28,12 +28,12 @@ class Funcion:
 
     @classmethod
     def from_dict(cls, datos):
-        funcion = cls(
+        f = cls(
             datos["id_pelicula"],
             datos["id_sala"],
             date.fromisoformat(datos["fecha_funcion"]),
             time.fromisoformat(datos["hora"]),
             datos["precio"],
         )
-        funcion.id = datos.get("id")
-        return funcion
+        f.id = datos.get("id")
+        return f
