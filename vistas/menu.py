@@ -1,11 +1,17 @@
 import json
 from datetime import date, datetime, time
 
+from dao.detalle_venta_dao import (
+    CodigoBoletoDuplicadoError,
+    DetalleVentaNoEncontradoError,
+    ReferenciaDetalleInvalidaError,
+)
 from dao.funcion_dao import FuncionNoEncontradaError, ReferenciaInvalidaError
 from dao.pelicula_dao import PeliculaNoEncontradaError
 from dao.sala_dao import SalaNoEncontradaError
 from dao.usuario_dao import CorreoDuplicadoError, UsuarioNoEncontradoError
 from dao.venta_dao import ReferenciaUsuarioInvalidaError, VentaNoEncontradaError
+from modelos.detalle_venta import DetalleVenta
 from modelos.funcion import Funcion
 from modelos.pelicula import Pelicula
 from modelos.sala import Sala
@@ -132,6 +138,21 @@ def agregar_venta(vdao, udao):
         print(f" ERROR: {ex}")
 
 
+def agregar_detalle_venta(ddao, vdao, fdao):
+    print("\n--- AGREGAR DETALLE DE VENTA ---")
+    try:
+        id_venta = int(input(" ID de venta : "))
+        id_funcion = int(input(" ID de funcion : "))
+        asiento = input(" Asiento : ")
+        codigo_boleto = input(" Codigo de boleto : ")
+        detalle = ddao.insertar(DetalleVenta(id_venta, id_funcion, asiento, codigo_boleto), vdao, fdao)
+        print(f" OK Detalle agregado con ID={detalle.id}")
+    except ValueError:
+        print(" ERROR: Verifica que los IDs sean validos")
+    except (ReferenciaDetalleInvalidaError, CodigoBoletoDuplicadoError) as ex:
+        print(f" ERROR: {ex}")
+
+
 def listar_usuarios(udao):
     print("\n--- USUARIOS ---")
     usuarios = udao.obtener_todos()
@@ -180,6 +201,16 @@ def listar_ventas(vdao):
             print(f" {venta}")
     else:
         print(" (No hay ventas registradas)")
+
+
+def listar_detalles_venta(ddao):
+    print("\n--- DETALLES DE VENTA ---")
+    detalles = ddao.obtener_todos()
+    if detalles:
+        for detalle in detalles:
+            print(f" {detalle}")
+    else:
+        print(" (No hay detalles registrados)")
 
 
 def actualizar_usuario(udao):
@@ -273,6 +304,30 @@ def actualizar_venta(vdao, udao):
         print(" ERROR: Verifica que los datos sean validos")
 
 
+def actualizar_detalle_venta(ddao, vdao, fdao):
+    print("\n--- ACTUALIZAR DETALLE DE VENTA ---")
+    try:
+        detalle_id = int(input(" ID del detalle a actualizar: "))
+        id_venta_str = input(" Nuevo ID de venta (Enter para no cambiar): ").strip()
+        id_funcion_str = input(" Nuevo ID de funcion (Enter para no cambiar): ").strip()
+        asiento = input(" Nuevo asiento (Enter para no cambiar): ").strip()
+        codigo_boleto = input(" Nuevo codigo de boleto (Enter para no cambiar): ").strip()
+        detalle = ddao.actualizar(
+            detalle_id,
+            int(id_venta_str) if id_venta_str else None,
+            int(id_funcion_str) if id_funcion_str else None,
+            asiento or None,
+            codigo_boleto or None,
+            venta_dao=vdao,
+            funcion_dao=fdao,
+        )
+        print(f" OK Detalle actualizado: {detalle}")
+    except (DetalleVentaNoEncontradoError, ReferenciaDetalleInvalidaError, CodigoBoletoDuplicadoError) as ex:
+        print(f" ERROR: {ex}")
+    except ValueError:
+        print(" ERROR: Verifica que los datos sean validos")
+
+
 def eliminar_usuario(udao):
     print("\n--- ELIMINAR USUARIO ---")
     try:
@@ -333,6 +388,18 @@ def eliminar_venta(vdao):
         print(" ERROR: El ID debe ser un numero entero")
 
 
+def eliminar_detalle_venta(ddao):
+    print("\n--- ELIMINAR DETALLE DE VENTA ---")
+    try:
+        detalle_id = int(input(" ID del detalle a eliminar: "))
+        ddao.eliminar(detalle_id)
+        print(f" OK Detalle ID={detalle_id} eliminado")
+    except DetalleVentaNoEncontradoError as ex:
+        print(f" ERROR: {ex}")
+    except ValueError:
+        print(" ERROR: El ID debe ser un numero entero")
+
+
 def ver_usuarios_json(udao):
     print("\n--- USUARIOS EN JSON ---")
     usuarios = udao.obtener_todos()
@@ -376,3 +443,12 @@ def ver_ventas_json(vdao):
         print(json.dumps([venta.to_dict() for venta in ventas], indent=4, ensure_ascii=False))
     else:
         print(" (No hay ventas registradas)")
+
+
+def ver_detalles_json(ddao):
+    print("\n--- DETALLES DE VENTA EN JSON ---")
+    detalles = ddao.obtener_todos()
+    if detalles:
+        print(json.dumps([detalle.to_dict() for detalle in detalles], indent=4, ensure_ascii=False))
+    else:
+        print(" (No hay detalles registrados)")
