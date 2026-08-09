@@ -16,6 +16,6 @@ class Usuario:
 
     @classmethod
     def from_dict(cls, datos):
-        usuario = cls(datos["nombres_usuario"], datos["correo"])
-        usuario.id = datos.get("id")
-        return usuario
+        u = cls(datos["nombres_usuario"], datos["correo"])
+        u.id = datos.get("id")
+        return u

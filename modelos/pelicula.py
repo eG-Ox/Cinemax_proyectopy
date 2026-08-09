@@ -23,11 +23,11 @@ class Pelicula:
 
     @classmethod
     def from_dict(cls, datos):
-        pelicula = cls(
+        p = cls(
             datos["titulo"],
             datos["genero"],
             datos["clasificacion"],
             datos["duracion"],
         )
-        pelicula.id = datos.get("id")
-        return pelicula
+        p.id = datos.get("id")
+        return p

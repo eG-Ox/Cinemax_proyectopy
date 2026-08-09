@@ -16,6 +16,6 @@ class Sala:
 
     @classmethod
     def from_dict(cls, datos):
-        sala = cls(datos["nombre_sala"], datos["capacidad"])
-        sala.id = datos.get("id")
-        return sala
+        s = cls(datos["nombre_sala"], datos["capacidad"])
+        s.id = datos.get("id")
+        return s
