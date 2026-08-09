@@ -23,6 +23,7 @@ def _guardar(archivo, objetos):
     datos = [objeto.to_dict() for objeto in objetos]
     with open(archivo, "w", encoding="utf-8") as f:
         json.dump(datos, f, indent=4, ensure_ascii=False)
+    print(f" OK Datos guardados en '{archivo}'")
 
 
 def _cargar(archivo):
@@ -30,6 +31,7 @@ def _cargar(archivo):
         with open(archivo, "r", encoding="utf-8") as f:
             return json.load(f)
     except FileNotFoundError:
+        print(f" AVISO: No existe '{archivo}', se empieza desde cero")
         return []
 
 
@@ -59,77 +61,83 @@ def guardar_detalles(ddao):
 
 def cargar_usuarios(udao):
     datos = _cargar(ARCHIVO_USUARIOS)
-    for item in datos:
-        usuario = Usuario.from_dict(item)
+    for d in datos:
+        usuario = Usuario.from_dict(d)
         udao._UsuarioDAO__bd.append(usuario)
         if usuario.id >= udao._UsuarioDAO__cid:
             udao._UsuarioDAO__cid = usuario.id + 1
+    if datos:
+        print(f" OK {len(datos)} usuarios cargados desde '{ARCHIVO_USUARIOS}'")
 
 
 def cargar_peliculas(pdao):
     datos = _cargar(ARCHIVO_PELICULAS)
-    for item in datos:
-        pelicula = Pelicula.from_dict(item)
+    for d in datos:
+        pelicula = Pelicula.from_dict(d)
         pdao._PeliculaDAO__bd.append(pelicula)
         if pelicula.id >= pdao._PeliculaDAO__cid:
             pdao._PeliculaDAO__cid = pelicula.id + 1
+    if datos:
+        print(f" OK {len(datos)} peliculas cargadas desde '{ARCHIVO_PELICULAS}'")
 
 
 def cargar_salas(sdao):
     datos = _cargar(ARCHIVO_SALAS)
-    for item in datos:
-        sala = Sala.from_dict(item)
+    for d in datos:
+        sala = Sala.from_dict(d)
         sdao._SalaDAO__bd.append(sala)
         if sala.id >= sdao._SalaDAO__cid:
             sdao._SalaDAO__cid = sala.id + 1
+    if datos:
+        print(f" OK {len(datos)} salas cargadas desde '{ARCHIVO_SALAS}'")
 
 
 def cargar_funciones(fdao):
     datos = _cargar(ARCHIVO_FUNCIONES)
-    for item in datos:
-        funcion = Funcion.from_dict(item)
+    for d in datos:
+        funcion = Funcion.from_dict(d)
         fdao._FuncionDAO__bd.append(funcion)
         if funcion.id >= fdao._FuncionDAO__cid:
             fdao._FuncionDAO__cid = funcion.id + 1
+    if datos:
+        print(f" OK {len(datos)} funciones cargadas desde '{ARCHIVO_FUNCIONES}'")
 
 
 def cargar_ventas(vdao):
     datos = _cargar(ARCHIVO_VENTAS)
-    for item in datos:
-        venta = Venta.from_dict(item)
+    for d in datos:
+        venta = Venta.from_dict(d)
         vdao._VentaDAO__bd.append(venta)
         if venta.id >= vdao._VentaDAO__cid:
             vdao._VentaDAO__cid = venta.id + 1
+    if datos:
+        print(f" OK {len(datos)} ventas cargadas desde '{ARCHIVO_VENTAS}'")
 
 
 def cargar_detalles(ddao):
     datos = _cargar(ARCHIVO_DETALLES)
-    for item in datos:
-        detalle = DetalleVenta.from_dict(item)
+    for d in datos:
+        detalle = DetalleVenta.from_dict(d)
         ddao._DetalleVentaDAO__bd.append(detalle)
         if detalle.id >= ddao._DetalleVentaDAO__cid:
             ddao._DetalleVentaDAO__cid = detalle.id + 1
+    if datos:
+        print(f" OK {len(datos)} detalles cargados desde '{ARCHIVO_DETALLES}'")
 
 
-def guardar_todo(udao, pdao, sdao, fdao=None, vdao=None, ddao=None):
+def guardar_todo(udao, pdao, sdao, fdao, vdao, ddao):
     guardar_usuarios(udao)
     guardar_peliculas(pdao)
     guardar_salas(sdao)
-    if fdao is not None:
-        guardar_funciones(fdao)
-    if vdao is not None:
-        guardar_ventas(vdao)
-    if ddao is not None:
-        guardar_detalles(ddao)
+    guardar_funciones(fdao)
+    guardar_ventas(vdao)
+    guardar_detalles(ddao)
 
 
-def cargar_todo(udao, pdao, sdao, fdao=None, vdao=None, ddao=None):
+def cargar_todo(udao, pdao, sdao, fdao, vdao, ddao):
     cargar_usuarios(udao)
     cargar_peliculas(pdao)
     cargar_salas(sdao)
-    if fdao is not None:
-        cargar_funciones(fdao)
-    if vdao is not None:
-        cargar_ventas(vdao)
-    if ddao is not None:
-        cargar_detalles(ddao)
+    cargar_funciones(fdao)
+    cargar_ventas(vdao)
+    cargar_detalles(ddao)
