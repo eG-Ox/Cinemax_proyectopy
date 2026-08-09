@@ -1,25 +1,34 @@
+import datetime
+
+
 class Logger:
     _instancia = None
 
     def __new__(cls):
         if cls._instancia is None:
             cls._instancia = super().__new__(cls)
-            cls._instancia._mensajes = []
+            cls._instancia._logs = []
         return cls._instancia
 
-    def info(self, mensaje):
-        self._mensajes.append(("INFO", mensaje))
+    def _register(self, nivel, mensaje):
+        hora = datetime.datetime.now().strftime("%H:%M:%S")
+        entrada = {"hora": hora, "nivel": nivel, "msg": mensaje}
+        self._logs.append(entrada)
 
-    def warning(self, mensaje):
-        self._mensajes.append(("WARNING", mensaje))
+    def info(self, msg):
+        self._register("INFO", msg)
 
-    def error(self, mensaje):
-        self._mensajes.append(("ERROR", mensaje))
+    def warning(self, msg):
+        self._register("WARNING", msg)
+
+    def error(self, msg):
+        self._register("ERROR", msg)
 
     def mostrar_logs(self):
-        print(f"\n=== LOGS ({len(self._mensajes)} eventos) ===")
-        for nivel, mensaje in self._mensajes:
-            print(f" {nivel:7} | {mensaje}")
+        print(f"\n=== HISTORIAL DEL SISTEMA ({len(self._logs)} eventos) ===")
+        for log in self._logs:
+            print(f" [{log['hora']}] {log['nivel']:7} | {log['msg']}")
 
     def limpiar(self):
-        self._mensajes.clear()
+        self._logs.clear()
+        print(" OK Historial de logs limpiado")

@@ -2,17 +2,19 @@ from config.logger import Logger
 
 
 class SistemaConfig:
-    _instancia = None
+    _inst = None
 
     def __new__(cls):
-        if cls._instancia is None:
-            cls._instancia = super().__new__(cls)
-            cls._instancia.nombre = "Sistema de Gestion Cine"
-            cls._instancia.version = "0.1"
-            cls._instancia.empresa = "Proyecto Cine"
-            cls._instancia.autor = "Proyecto personal"
+        if cls._inst is None:
+            cls._inst = super().__new__(cls)
+            cls._inst.nombre = "Sistema de Gestión POO"
+            cls._inst.version = "1.0"
+            cls._inst.empresa = "CineMax"
+            cls._inst.autor = "Copilot"
             Logger().info(
-                f"Sistema iniciado: {cls._instancia.nombre} "
-                f"v{cls._instancia.version}"
+                f"Sistema Iniciado: {cls._inst.nombre} "
+                f"Version: {cls._inst.version} "
+                f"Empresa: {cls._inst.empresa} "
+                f"Autor: {cls._inst.autor}"
             )
-        return cls._instancia
+        return cls._inst
