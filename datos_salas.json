@@ -1,1 +1,7 @@
-[]
+[
+    {
+        "id": 1,
+        "nombre_sala": "Sala 1",
+        "capacidad": 80
+    }
+]

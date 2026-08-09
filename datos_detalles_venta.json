@@ -1,1 +1,9 @@
-[]
+[
+    {
+        "id": 1,
+        "id_venta": 1,
+        "id_funcion": 1,
+        "asiento": "A10",
+        "codigo_boleto": "BOL-0001"
+    }
+]
