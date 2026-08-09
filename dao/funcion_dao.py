@@ -39,17 +39,7 @@ class FuncionDAO:
     def obtener_todos(self):
         return sorted(self.__bd, key=lambda funcion: (funcion.fecha_funcion, funcion.hora, funcion.id))
 
-    def actualizar(
-        self,
-        funcion_id,
-        id_pelicula=None,
-        id_sala=None,
-        fecha_funcion=None,
-        hora=None,
-        precio=None,
-        pelicula_dao=None,
-        sala_dao=None,
-    ):
+    def actualizar(self, funcion_id, id_pelicula=None, id_sala=None, fecha_funcion=None, hora=None, precio=None, pelicula_dao=None, sala_dao=None):
         funcion = self.buscar_por_id(funcion_id)
         if not funcion:
             self.__log.error(f"Actualizar fallido: Funcion ID={funcion_id} no existe")

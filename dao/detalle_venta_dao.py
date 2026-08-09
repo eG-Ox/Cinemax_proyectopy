@@ -53,16 +53,7 @@ class DetalleVentaDAO:
     def obtener_todos(self):
         return sorted(self.__bd, key=lambda detalle: detalle.id)
 
-    def actualizar(
-        self,
-        detalle_id,
-        id_venta=None,
-        id_funcion=None,
-        asiento=None,
-        codigo_boleto=None,
-        venta_dao=None,
-        funcion_dao=None,
-    ):
+    def actualizar(self, detalle_id, id_venta=None, id_funcion=None, asiento=None, codigo_boleto=None, venta_dao=None, funcion_dao=None):
         detalle = self.buscar_por_id(detalle_id)
         if not detalle:
             self.__log.error(f"Actualizar fallido: Detalle ID={detalle_id} no existe")
