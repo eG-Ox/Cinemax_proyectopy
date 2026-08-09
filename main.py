@@ -1,6 +1,7 @@
 from config.logger import Logger
 from config.persistencia import cargar_todo, guardar_todo
 from config.sistema_config import SistemaConfig
+from dao.detalle_venta_dao import DetalleVentaDAO
 from dao.funcion_dao import FuncionDAO
 from dao.pelicula_dao import PeliculaDAO
 from dao.sala_dao import SalaDAO
@@ -8,27 +9,32 @@ from dao.usuario_dao import UsuarioDAO
 from dao.venta_dao import VentaDAO
 from vistas.menu import (
     actualizar_funcion,
+    actualizar_detalle_venta,
     actualizar_pelicula,
     actualizar_sala,
     actualizar_usuario,
     actualizar_venta,
     agregar_funcion,
+    agregar_detalle_venta,
     agregar_pelicula,
     agregar_sala,
     agregar_usuario,
     agregar_venta,
     eliminar_funcion,
+    eliminar_detalle_venta,
     eliminar_pelicula,
     eliminar_sala,
     eliminar_usuario,
     eliminar_venta,
     listar_funciones,
+    listar_detalles_venta,
     listar_peliculas,
     listar_salas,
     listar_usuarios,
     listar_ventas,
     mostrar_menu,
     ver_funciones_json,
+    ver_detalles_json,
     ver_peliculas_json,
     ver_salas_json,
     ver_usuarios_json,
@@ -43,9 +49,10 @@ def main():
     sdao = SalaDAO()
     fdao = FuncionDAO()
     vdao = VentaDAO()
+    ddao = DetalleVentaDAO()
 
     Logger().info(f"Aplicacion cinemax abierta: {cfg.nombre} v{cfg.version}")
-    cargar_todo(udao, pdao, sdao, fdao, vdao)
+    cargar_todo(udao, pdao, sdao, fdao, vdao, ddao)
 
     while True:
         mostrar_menu(cfg)
@@ -92,7 +99,7 @@ def main():
             case "20":
                 ver_funciones_json(fdao)
             case "21":
-                guardar_todo(udao, pdao, sdao, fdao, vdao)
+                guardar_todo(udao, pdao, sdao, fdao, vdao, ddao)
                 print(" OK Datos guardados en JSON")
             case "22":
                 Logger().mostrar_logs()
@@ -109,13 +116,23 @@ def main():
                 eliminar_venta(vdao)
             case "28":
                 ver_ventas_json(vdao)
+            case "29":
+                agregar_detalle_venta(ddao, vdao, fdao)
+            case "30":
+                listar_detalles_venta(ddao)
+            case "31":
+                actualizar_detalle_venta(ddao, vdao, fdao)
+            case "32":
+                eliminar_detalle_venta(ddao)
+            case "33":
+                ver_detalles_json(ddao)
             case "0":
-                guardar_todo(udao, pdao, sdao, fdao, vdao)
+                guardar_todo(udao, pdao, sdao, fdao, vdao, ddao)
                 Logger().info("Sistema cerrado por el usuario")
                 print("\n Hasta luego.")
                 break
             case _:
-                print(" Opcion no valida, elige entre 0 y 28")
+                print(" Opcion no valida, elige entre 0 y 33")
 
 
 if __name__ == "__main__":

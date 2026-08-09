@@ -70,6 +70,11 @@ def mostrar_menu(cfg):
     print(" 26. Actualizar venta")
     print(" 27. Eliminar venta")
     print(" 28. Ver ventas en JSON")
+    print(" 29. Agregar detalle de venta")
+    print(" 30. Listar detalles de venta")
+    print(" 31. Actualizar detalle de venta")
+    print(" 32. Eliminar detalle de venta")
+    print(" 33. Ver detalles de venta en JSON")
     print(" 0. Salir")
     print(f"{'=' * 45}")
 
