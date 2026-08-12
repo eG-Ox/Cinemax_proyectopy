@@ -41,7 +41,9 @@ CREATE TABLE IF NOT EXISTS detalle_venta (
     id_venta INTEGER NOT NULL,
     id_funcion INTEGER NOT NULL,
     asiento TEXT NOT NULL,
-    codigo_boleto TEXT UNIQUE NOT NULL,
+    codigo_boleto TEXT NOT NULL,
+    CONSTRAINT uq_detalle_venta_codigo_boleto UNIQUE (codigo_boleto),
+    CONSTRAINT uq_detalle_venta_funcion_asiento UNIQUE (id_funcion, asiento),
     FOREIGN KEY (id_venta) REFERENCES venta(id_venta),
     FOREIGN KEY (id_funcion) REFERENCES funcion(id_funcion)
 );

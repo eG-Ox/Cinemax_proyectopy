@@ -23,6 +23,10 @@ class DetalleVentaDAO:
     def __init__(self):
         self.__log = Logger()
 
+    def _normalizar_detalle(self, detalle):
+        detalle.asiento = detalle.asiento.strip().upper()
+        detalle.codigo_boleto = detalle.codigo_boleto.strip().upper()
+
     def buscar_por_id(self, detalle_id):
         with conexion_bd() as conn:
             cursor = conn.cursor()
@@ -38,6 +42,7 @@ class DetalleVentaDAO:
         return self.__fila_a_detalle(fila) if fila else None
 
     def insertar(self, detalle, venta_dao=None, funcion_dao=None):
+        self._normalizar_detalle(detalle)
         if self.buscar_por_codigo(detalle.codigo_boleto):
             self.__log.warning(f"Codigo de boleto duplicado: {detalle.codigo_boleto}")
             raise CodigoBoletoDuplicadoError(detalle.codigo_boleto)
@@ -88,6 +93,8 @@ class DetalleVentaDAO:
         if not detalle:
             self.__log.error(f"Actualizar fallido: Detalle ID={detalle_id} no existe")
             raise DetalleVentaNoEncontradoError(detalle_id)
+        asiento = asiento.strip().upper() if asiento is not None else None
+        codigo_boleto = codigo_boleto.strip().upper() if codigo_boleto is not None else None
         if codigo_boleto and codigo_boleto != detalle.codigo_boleto:
             existente = self.buscar_por_codigo(codigo_boleto)
             if existente and existente.id != detalle_id:
