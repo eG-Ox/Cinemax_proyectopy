@@ -470,9 +470,6 @@ Cinemax_proyectopy/
 |   |-- venta_schema.py
 |   |-- detalle_venta_schema.py
 |
-|-- vistas/
-|   |-- menu.py
-|
 |-- main.py
 |-- schema_cine.sql
 ```
