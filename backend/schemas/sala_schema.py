@@ -3,6 +3,7 @@ from typing import Optional
 
 
 class SalaCrear(BaseModel):
+    id_pelicula: int
     nombre_sala: str
     capacidad: int
 
@@ -15,6 +16,7 @@ class SalaCrear(BaseModel):
 
 
 class SalaActualizar(BaseModel):
+    id_pelicula: Optional[int] = None
     nombre_sala: Optional[str] = None
     capacidad: Optional[int] = None
 
@@ -28,5 +30,7 @@ class SalaActualizar(BaseModel):
 
 class SalaRespuesta(BaseModel):
     id: int
+    id_pelicula: Optional[int] = None
     nombre_sala: str
     capacidad: int
+    asientos_disponibles: int

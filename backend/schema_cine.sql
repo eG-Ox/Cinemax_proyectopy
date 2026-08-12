@@ -14,8 +14,15 @@ CREATE TABLE IF NOT EXISTS pelicula (
 
 CREATE TABLE IF NOT EXISTS sala (
     id_sala SERIAL PRIMARY KEY,
+    id_pelicula INTEGER NOT NULL,
     nombre_sala TEXT NOT NULL,
-    capacidad INTEGER NOT NULL
+    capacidad INTEGER NOT NULL,
+    asientos_disponibles INTEGER NOT NULL,
+    FOREIGN KEY (id_pelicula) REFERENCES pelicula(id_pelicula),
+    CONSTRAINT chk_sala_capacidad_positiva CHECK (capacidad > 0),
+    CONSTRAINT chk_sala_asientos_disponibles CHECK (
+        asientos_disponibles >= 0 AND asientos_disponibles <= capacidad
+    )
 );
 
 CREATE TABLE IF NOT EXISTS funcion (

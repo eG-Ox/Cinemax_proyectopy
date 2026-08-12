@@ -52,9 +52,70 @@ def inicializar():
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS sala(
                 id_sala SERIAL PRIMARY KEY,
+                id_pelicula INTEGER NOT NULL,
                 nombre_sala TEXT NOT NULL,
-                capacidad INTEGER NOT NULL
+                capacidad INTEGER NOT NULL,
+                asientos_disponibles INTEGER NOT NULL,
+                FOREIGN KEY (id_pelicula) REFERENCES pelicula(id_pelicula),
+                CONSTRAINT chk_sala_capacidad_positiva CHECK (capacidad > 0),
+                CONSTRAINT chk_sala_asientos_disponibles CHECK (
+                    asientos_disponibles >= 0 AND asientos_disponibles <= capacidad
+                )
             )
+        """)
+
+        cursor.execute("ALTER TABLE sala ADD COLUMN IF NOT EXISTS id_pelicula INTEGER")
+        cursor.execute("ALTER TABLE sala ADD COLUMN IF NOT EXISTS asientos_disponibles INTEGER")
+        cursor.execute("""
+            UPDATE sala
+            SET asientos_disponibles = capacidad
+            WHERE asientos_disponibles IS NULL
+        """)
+        cursor.execute("ALTER TABLE sala ALTER COLUMN asientos_disponibles SET NOT NULL")
+
+        cursor.execute("""
+            DO $$
+            BEGIN
+                IF NOT EXISTS (
+                    SELECT 1
+                    FROM pg_constraint
+                    WHERE conname = 'sala_id_pelicula_fkey'
+                ) THEN
+                    ALTER TABLE sala
+                    ADD CONSTRAINT sala_id_pelicula_fkey
+                    FOREIGN KEY (id_pelicula) REFERENCES pelicula(id_pelicula);
+                END IF;
+            END $$;
+        """)
+
+        cursor.execute("""
+            DO $$
+            BEGIN
+                IF NOT EXISTS (
+                    SELECT 1
+                    FROM pg_constraint
+                    WHERE conname = 'chk_sala_capacidad_positiva'
+                ) THEN
+                    ALTER TABLE sala
+                    ADD CONSTRAINT chk_sala_capacidad_positiva
+                    CHECK (capacidad > 0);
+                END IF;
+            END $$;
+        """)
+
+        cursor.execute("""
+            DO $$
+            BEGIN
+                IF NOT EXISTS (
+                    SELECT 1
+                    FROM pg_constraint
+                    WHERE conname = 'chk_sala_asientos_disponibles'
+                ) THEN
+                    ALTER TABLE sala
+                    ADD CONSTRAINT chk_sala_asientos_disponibles
+                    CHECK (asientos_disponibles >= 0 AND asientos_disponibles <= capacidad);
+                END IF;
+            END $$;
         """)
 
         cursor.execute("""

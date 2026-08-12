@@ -23,6 +23,12 @@ class FuncionDAO:
     def __init__(self):
         self.__log = Logger()
 
+    def __validar_sala_pelicula(self, sala, id_pelicula):
+        if sala.id_pelicula is not None and sala.id_pelicula != id_pelicula:
+            raise ReferenciaInvalidaError(
+                f"Sala ID={sala.id} no esta asociada a la pelicula ID={id_pelicula}"
+            )
+
     def buscar_por_id(self, funcion_id):
         with conexion_bd() as conn:
             cursor = conn.cursor()
@@ -34,9 +40,12 @@ class FuncionDAO:
         if pelicula_dao is not None and not pelicula_dao.buscar_por_id(funcion.id_pelicula):
             self.__log.error(f"Funcion invalida: pelicula ID={funcion.id_pelicula} no existe")
             raise ReferenciaInvalidaError(f"Pelicula ID={funcion.id_pelicula} no encontrada")
-        if sala_dao is not None and not sala_dao.buscar_por_id(funcion.id_sala):
-            self.__log.error(f"Funcion invalida: sala ID={funcion.id_sala} no existe")
-            raise ReferenciaInvalidaError(f"Sala ID={funcion.id_sala} no encontrada")
+        if sala_dao is not None:
+            sala = sala_dao.buscar_por_id(funcion.id_sala)
+            if not sala:
+                self.__log.error(f"Funcion invalida: sala ID={funcion.id_sala} no existe")
+                raise ReferenciaInvalidaError(f"Sala ID={funcion.id_sala} no encontrada")
+            self.__validar_sala_pelicula(sala, funcion.id_pelicula)
         with conexion_bd() as conn:
             cursor = conn.cursor()
             try:
@@ -88,6 +97,11 @@ class FuncionDAO:
             funcion.hora = hora
         if precio is not None:
             funcion.precio = precio
+        if sala_dao is not None:
+            sala = sala_dao.buscar_por_id(funcion.id_sala)
+            if not sala:
+                raise ReferenciaInvalidaError(f"Sala ID={funcion.id_sala} no encontrada")
+            self.__validar_sala_pelicula(sala, funcion.id_pelicula)
         with conexion_bd() as conn:
             cursor = conn.cursor()
             try:
