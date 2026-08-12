@@ -1,6 +1,10 @@
 from datetime import datetime
 from fastapi import APIRouter, HTTPException
-from dao.detalle_venta_dao import ReferenciaDetalleInvalidaError
+from dao.detalle_venta_dao import (
+    AsientoOcupadoError,
+    CodigoBoletoDuplicadoError,
+    ReferenciaDetalleInvalidaError,
+)
 from dao.funcion_dao import FuncionDAO
 from dao.usuario_dao import UsuarioDAO
 from dao.venta_dao import (
@@ -78,7 +82,11 @@ def crear_venta_con_boleto(datos: VentaConBoletoCrear):
     except ReferenciaUsuarioInvalidaError as ex:
         raise HTTPException(status_code=404, detail=str(ex))
     except ReferenciaDetalleInvalidaError as ex:
-        raise HTTPException(status_code=400, detail=str(ex))
+        raise HTTPException(status_code=404, detail=str(ex))
+    except CodigoBoletoDuplicadoError as ex:
+        raise HTTPException(status_code=409, detail=str(ex))
+    except AsientoOcupadoError as ex:
+        raise HTTPException(status_code=409, detail=str(ex))
 
 
 @router.put("/{venta_id}", response_model=VentaRespuesta)

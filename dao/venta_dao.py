@@ -1,7 +1,10 @@
 import psycopg2
 from config.base_datos import conexion_bd
 from config.logger import Logger
-from dao.detalle_venta_dao import ReferenciaDetalleInvalidaError
+from dao.detalle_venta_dao import (
+    ReferenciaDetalleInvalidaError,
+    traducir_error_integridad_detalle,
+)
 from modelos.venta import Venta
 
 
@@ -81,9 +84,12 @@ class VentaDAO:
                 )
                 detalle.id = cursor.fetchone()["id_detalle"]
                 conn.commit()
-            except psycopg2.IntegrityError:
+            except psycopg2.IntegrityError as ex:
                 conn.rollback()
-                raise ReferenciaDetalleInvalidaError("No se pudo registrar la venta con boleto")
+                constraint = getattr(ex.diag, "constraint_name", "")
+                if constraint == "venta_id_usuario_fkey":
+                    raise ReferenciaUsuarioInvalidaError(venta.id_usuario) from ex
+                raise traducir_error_integridad_detalle(ex, detalle) from ex
 
         self.__log.info(f"Venta con boleto agregada: Venta ID={venta.id}, Detalle ID={detalle.id}")
         return venta, detalle

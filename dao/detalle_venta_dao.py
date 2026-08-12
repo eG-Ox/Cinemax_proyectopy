@@ -19,6 +19,27 @@ class CodigoBoletoDuplicadoError(Exception):
         super().__init__(f"Codigo de boleto '{codigo_boleto}' ya registrado")
 
 
+class AsientoOcupadoError(Exception):
+    def __init__(self, id_funcion, asiento):
+        super().__init__(f"Asiento '{asiento}' ya ocupado para la funcion ID={id_funcion}")
+
+
+CODIGO_BOLETO_CONSTRAINTS = {
+    "detalle_venta_codigo_boleto_key",
+    "uq_detalle_venta_codigo_boleto",
+}
+ASIENTO_FUNCION_CONSTRAINT = "uq_detalle_venta_funcion_asiento"
+
+
+def traducir_error_integridad_detalle(error, detalle):
+    constraint = getattr(error.diag, "constraint_name", "")
+    if constraint in CODIGO_BOLETO_CONSTRAINTS:
+        return CodigoBoletoDuplicadoError(detalle.codigo_boleto)
+    if constraint == ASIENTO_FUNCION_CONSTRAINT:
+        return AsientoOcupadoError(detalle.id_funcion, detalle.asiento)
+    return ReferenciaDetalleInvalidaError("Venta o funcion no encontrada")
+
+
 class DetalleVentaDAO:
     def __init__(self):
         self.__log = Logger()
@@ -65,9 +86,9 @@ class DetalleVentaDAO:
                 )
                 detalle.id = cursor.fetchone()["id_detalle"]
                 conn.commit()
-            except psycopg2.IntegrityError:
+            except psycopg2.IntegrityError as ex:
                 conn.rollback()
-                raise ReferenciaDetalleInvalidaError("Venta o funcion no encontrada")
+                raise traducir_error_integridad_detalle(ex, detalle) from ex
         self.__log.info(f"Detalle de venta agregado: ID={detalle.id}")
         return detalle
 
@@ -129,9 +150,9 @@ class DetalleVentaDAO:
                     ),
                 )
                 conn.commit()
-            except psycopg2.IntegrityError:
+            except psycopg2.IntegrityError as ex:
                 conn.rollback()
-                raise ReferenciaDetalleInvalidaError("Venta o funcion no encontrada")
+                raise traducir_error_integridad_detalle(ex, detalle) from ex
         self.__log.info(f"Detalle de venta actualizado: ID={detalle_id}")
         return detalle
 

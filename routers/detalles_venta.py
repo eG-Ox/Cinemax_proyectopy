@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from dao.detalle_venta_dao import (
+    AsientoOcupadoError,
     CodigoBoletoDuplicadoError,
     DetalleVentaDAO,
     DetalleVentaNoEncontradoError,
@@ -57,7 +58,9 @@ def crear_detalle(datos: DetalleVentaCrear):
     except ReferenciaDetalleInvalidaError as ex:
         raise HTTPException(status_code=404, detail=str(ex))
     except CodigoBoletoDuplicadoError as ex:
-        raise HTTPException(status_code=400, detail=str(ex))
+        raise HTTPException(status_code=409, detail=str(ex))
+    except AsientoOcupadoError as ex:
+        raise HTTPException(status_code=409, detail=str(ex))
 
 
 @router.put("/{detalle_id}", response_model=DetalleVentaRespuesta)
@@ -78,7 +81,9 @@ def actualizar_detalle(detalle_id: int, datos: DetalleVentaActualizar):
     except ReferenciaDetalleInvalidaError as ex:
         raise HTTPException(status_code=404, detail=str(ex))
     except CodigoBoletoDuplicadoError as ex:
-        raise HTTPException(status_code=400, detail=str(ex))
+        raise HTTPException(status_code=409, detail=str(ex))
+    except AsientoOcupadoError as ex:
+        raise HTTPException(status_code=409, detail=str(ex))
 
 
 @router.delete("/{detalle_id}")
