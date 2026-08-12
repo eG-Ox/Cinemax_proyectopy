@@ -5,6 +5,7 @@ from dao.detalle_venta_dao import (
     DetalleVentaDAO,
     DetalleVentaNoEncontradoError,
     ReferenciaDetalleInvalidaError,
+    SalaSinAsientosDisponiblesError,
 )
 from dao.funcion_dao import FuncionDAO
 from dao.venta_dao import VentaDAO
@@ -61,6 +62,8 @@ def crear_detalle(datos: DetalleVentaCrear):
         raise HTTPException(status_code=409, detail=str(ex))
     except AsientoOcupadoError as ex:
         raise HTTPException(status_code=409, detail=str(ex))
+    except SalaSinAsientosDisponiblesError as ex:
+        raise HTTPException(status_code=409, detail=str(ex))
 
 
 @router.put("/{detalle_id}", response_model=DetalleVentaRespuesta)
@@ -83,6 +86,8 @@ def actualizar_detalle(detalle_id: int, datos: DetalleVentaActualizar):
     except CodigoBoletoDuplicadoError as ex:
         raise HTTPException(status_code=409, detail=str(ex))
     except AsientoOcupadoError as ex:
+        raise HTTPException(status_code=409, detail=str(ex))
+    except SalaSinAsientosDisponiblesError as ex:
         raise HTTPException(status_code=409, detail=str(ex))
 
 

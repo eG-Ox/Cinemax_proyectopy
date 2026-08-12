@@ -6,7 +6,6 @@ from schemas.detalle_venta_schema import DetalleVentaRespuesta
 
 class VentaCrear(BaseModel):
     id_usuario: int
-    fecha_compra: Optional[datetime] = None
 
 
 class VentaConBoletoCrear(BaseModel):
@@ -14,7 +13,6 @@ class VentaConBoletoCrear(BaseModel):
     id_funcion: int
     asiento: str
     codigo_boleto: str
-    fecha_compra: Optional[datetime] = None
 
 
 class VentaActualizar(BaseModel):
@@ -26,6 +24,7 @@ class VentaRespuesta(BaseModel):
     id: int
     id_usuario: int
     fecha_compra: datetime
+    total: float
 
 
 class VentaConBoletoRespuesta(BaseModel):

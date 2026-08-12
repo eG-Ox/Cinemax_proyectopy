@@ -3,6 +3,8 @@ from config.base_datos import conexion_bd
 from config.logger import Logger
 from dao.detalle_venta_dao import (
     ReferenciaDetalleInvalidaError,
+    descontar_asiento_sala,
+    obtener_funcion_resumen,
     traducir_error_integridad_detalle,
 )
 from modelos.venta import Venta
@@ -27,10 +29,28 @@ class VentaDAO:
     def __init__(self):
         self.__log = Logger()
 
+    def __consulta_ventas(self, where="", having=""):
+        return f"""
+            SELECT
+                v.id_venta,
+                v.id_usuario,
+                v.fecha_compra,
+                COALESCE(SUM(f.precio), 0)::float AS total
+            FROM venta v
+            LEFT JOIN detalle_venta dv ON dv.id_venta = v.id_venta
+            LEFT JOIN funcion f ON f.id_funcion = dv.id_funcion
+            {where}
+            GROUP BY v.id_venta, v.id_usuario, v.fecha_compra
+            {having}
+        """
+
     def buscar_por_id(self, venta_id):
         with conexion_bd() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM venta WHERE id_venta = %s", (venta_id,))
+            cursor.execute(
+                self.__consulta_ventas("WHERE v.id_venta = %s"),
+                (venta_id,),
+            )
             fila = cursor.fetchone()
         return self.__fila_a_venta(fila) if fila else None
 
@@ -74,6 +94,8 @@ class VentaDAO:
                 )
                 venta.id = cursor.fetchone()["id_venta"]
                 detalle.id_venta = venta.id
+                funcion = obtener_funcion_resumen(cursor, detalle.id_funcion)
+                descontar_asiento_sala(cursor, funcion["id_sala"])
                 cursor.execute(
                     """
                     INSERT INTO detalle_venta (id_venta, id_funcion, asiento, codigo_boleto)
@@ -83,6 +105,7 @@ class VentaDAO:
                     (detalle.id_venta, detalle.id_funcion, detalle.asiento, detalle.codigo_boleto),
                 )
                 detalle.id = cursor.fetchone()["id_detalle"]
+                venta.total = float(funcion["precio"])
                 conn.commit()
             except psycopg2.IntegrityError as ex:
                 conn.rollback()
@@ -97,7 +120,10 @@ class VentaDAO:
     def obtener_todos(self):
         with conexion_bd() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM venta ORDER BY fecha_compra, id_venta")
+            cursor.execute(
+                self.__consulta_ventas(having="HAVING COUNT(dv.id_detalle) > 0")
+                + " ORDER BY v.fecha_compra, v.id_venta"
+            )
             filas = cursor.fetchall()
         return [self.__fila_a_venta(fila) for fila in filas]
 
@@ -105,7 +131,11 @@ class VentaDAO:
         with conexion_bd() as conn:
             cursor = conn.cursor()
             cursor.execute(
-                "SELECT * FROM venta WHERE id_usuario = %s ORDER BY fecha_compra, id_venta",
+                self.__consulta_ventas(
+                    "WHERE v.id_usuario = %s",
+                    "HAVING COUNT(dv.id_detalle) > 0",
+                )
+                + " ORDER BY v.fecha_compra, v.id_venta",
                 (usuario_id,),
             )
             filas = cursor.fetchall()
@@ -156,11 +186,11 @@ class VentaDAO:
     def total(self):
         with conexion_bd() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT COUNT(*) AS total FROM venta")
+            cursor.execute("SELECT COUNT(DISTINCT id_venta) AS total FROM detalle_venta")
             total = cursor.fetchone()["total"]
         return total
 
     def __fila_a_venta(self, fila):
-        venta = Venta(fila["id_usuario"], fila["fecha_compra"])
+        venta = Venta(fila["id_usuario"], fila["fecha_compra"], fila.get("total", 0))
         venta.id = fila["id_venta"]
         return venta

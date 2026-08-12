@@ -4,6 +4,7 @@ from dao.detalle_venta_dao import (
     AsientoOcupadoError,
     CodigoBoletoDuplicadoError,
     ReferenciaDetalleInvalidaError,
+    SalaSinAsientosDisponiblesError,
 )
 from dao.funcion_dao import FuncionDAO
 from dao.usuario_dao import UsuarioDAO
@@ -53,7 +54,7 @@ def obtener_venta(venta_id: int):
 def crear_venta(datos: VentaCrear):
     try:
         venta = dao.insertar(
-            Venta(datos.id_usuario, datos.fecha_compra or datetime.now()),
+            Venta(datos.id_usuario, datetime.now()),
             udao,
         )
         return venta.to_dict()
@@ -65,7 +66,7 @@ def crear_venta(datos: VentaCrear):
 def crear_venta_con_boleto(datos: VentaConBoletoCrear):
     try:
         venta, detalle = dao.insertar_con_detalle(
-            Venta(datos.id_usuario, datos.fecha_compra or datetime.now()),
+            Venta(datos.id_usuario, datetime.now()),
             DetalleVenta(
                 None,
                 datos.id_funcion,
@@ -86,6 +87,8 @@ def crear_venta_con_boleto(datos: VentaConBoletoCrear):
     except CodigoBoletoDuplicadoError as ex:
         raise HTTPException(status_code=409, detail=str(ex))
     except AsientoOcupadoError as ex:
+        raise HTTPException(status_code=409, detail=str(ex))
+    except SalaSinAsientosDisponiblesError as ex:
         raise HTTPException(status_code=409, detail=str(ex))
 
 

@@ -24,6 +24,11 @@ class AsientoOcupadoError(Exception):
         super().__init__(f"Asiento '{asiento}' ya ocupado para la funcion ID={id_funcion}")
 
 
+class SalaSinAsientosDisponiblesError(Exception):
+    def __init__(self, sala_id):
+        super().__init__(f"Sala ID={sala_id} no tiene asientos disponibles")
+
+
 CODIGO_BOLETO_CONSTRAINTS = {
     "detalle_venta_codigo_boleto_key",
     "uq_detalle_venta_codigo_boleto",
@@ -38,6 +43,47 @@ def traducir_error_integridad_detalle(error, detalle):
     if constraint == ASIENTO_FUNCION_CONSTRAINT:
         return AsientoOcupadoError(detalle.id_funcion, detalle.asiento)
     return ReferenciaDetalleInvalidaError("Venta o funcion no encontrada")
+
+
+def obtener_funcion_resumen(cursor, funcion_id):
+    cursor.execute(
+        """
+        SELECT id_funcion, id_sala, precio
+        FROM funcion
+        WHERE id_funcion = %s
+        """,
+        (funcion_id,),
+    )
+    fila = cursor.fetchone()
+    if not fila:
+        raise ReferenciaDetalleInvalidaError(f"Funcion ID={funcion_id} no encontrada")
+    return fila
+
+
+def descontar_asiento_sala(cursor, sala_id):
+    cursor.execute(
+        """
+        UPDATE sala
+        SET asientos_disponibles = asientos_disponibles - 1
+        WHERE id_sala = %s
+          AND asientos_disponibles > 0
+        RETURNING asientos_disponibles
+        """,
+        (sala_id,),
+    )
+    if not cursor.fetchone():
+        raise SalaSinAsientosDisponiblesError(sala_id)
+
+
+def restaurar_asiento_sala(cursor, sala_id):
+    cursor.execute(
+        """
+        UPDATE sala
+        SET asientos_disponibles = LEAST(capacidad, asientos_disponibles + 1)
+        WHERE id_sala = %s
+        """,
+        (sala_id,),
+    )
 
 
 class DetalleVentaDAO:
@@ -76,6 +122,8 @@ class DetalleVentaDAO:
         with conexion_bd() as conn:
             cursor = conn.cursor()
             try:
+                funcion = obtener_funcion_resumen(cursor, detalle.id_funcion)
+                descontar_asiento_sala(cursor, funcion["id_sala"])
                 cursor.execute(
                     """
                     INSERT INTO detalle_venta (id_venta, id_funcion, asiento, codigo_boleto)
@@ -114,6 +162,7 @@ class DetalleVentaDAO:
         if not detalle:
             self.__log.error(f"Actualizar fallido: Detalle ID={detalle_id} no existe")
             raise DetalleVentaNoEncontradoError(detalle_id)
+        id_funcion_anterior = detalle.id_funcion
         asiento = asiento.strip().upper() if asiento is not None else None
         codigo_boleto = codigo_boleto.strip().upper() if codigo_boleto is not None else None
         if codigo_boleto and codigo_boleto != detalle.codigo_boleto:
@@ -135,6 +184,12 @@ class DetalleVentaDAO:
         with conexion_bd() as conn:
             cursor = conn.cursor()
             try:
+                if detalle.id_funcion != id_funcion_anterior:
+                    funcion_anterior = obtener_funcion_resumen(cursor, id_funcion_anterior)
+                    funcion_nueva = obtener_funcion_resumen(cursor, detalle.id_funcion)
+                    if funcion_anterior["id_sala"] != funcion_nueva["id_sala"]:
+                        restaurar_asiento_sala(cursor, funcion_anterior["id_sala"])
+                        descontar_asiento_sala(cursor, funcion_nueva["id_sala"])
                 cursor.execute(
                     """
                     UPDATE detalle_venta
@@ -163,7 +218,9 @@ class DetalleVentaDAO:
             raise DetalleVentaNoEncontradoError(detalle_id)
         with conexion_bd() as conn:
             cursor = conn.cursor()
+            funcion = obtener_funcion_resumen(cursor, detalle.id_funcion)
             cursor.execute("DELETE FROM detalle_venta WHERE id_detalle = %s", (detalle_id,))
+            restaurar_asiento_sala(cursor, funcion["id_sala"])
             conn.commit()
         self.__log.info(f"Detalle de venta eliminado: ID={detalle_id}")
         return True
