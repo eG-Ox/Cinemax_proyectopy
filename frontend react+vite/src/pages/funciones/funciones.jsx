@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import api from "../../api/axios";
 import Confirmacion from "../../components/confirmacion/confirmacion";
@@ -26,6 +26,8 @@ function Funciones() {
   const [busqueda, setBusqueda] = useState("");
   const [mensaje, setMensaje] = useState(null);
   const [funcionEliminar, setFuncionEliminar] = useState(null);
+  const [guardando, setGuardando] = useState(false);
+  const guardandoRef = useRef(false);
 
   const cargarDatos = async () => {
     try {
@@ -124,9 +126,12 @@ function Funciones() {
   });
 
   const guardarFuncion = async () => {
-    if (!validarFormulario()) {
+    if (guardandoRef.current || !validarFormulario()) {
       return;
     }
+
+    guardandoRef.current = true;
+    setGuardando(true);
 
     try {
       await api.post("/funciones/", datosFuncion());
@@ -140,6 +145,9 @@ function Funciones() {
           obtenerMensajeError(error, "La funcion no pudo registrarse."),
         ),
       );
+    } finally {
+      guardandoRef.current = false;
+      setGuardando(false);
     }
   };
 
@@ -154,9 +162,12 @@ function Funciones() {
   };
 
   const actualizarFuncion = async () => {
-    if (!validarFormulario()) {
+    if (guardandoRef.current || !validarFormulario()) {
       return;
     }
+
+    guardandoRef.current = true;
+    setGuardando(true);
 
     try {
       await api.put(`/funciones/${idEditar}`, datosFuncion());
@@ -170,6 +181,9 @@ function Funciones() {
           obtenerMensajeError(error, "La funcion no pudo actualizarse."),
         ),
       );
+    } finally {
+      guardandoRef.current = false;
+      setGuardando(false);
     }
   };
 
@@ -264,7 +278,9 @@ function Funciones() {
                       <option value="">
                         {!idPelicula
                           ? "Seleccione una pelicula primero"
-                          : "Seleccionar sala"}
+                          : salasRelacionadas.length === 0
+                            ? "No hay salas asociadas"
+                            : "Seleccionar sala"}
                       </option>
                       {salasRelacionadas.map((sala) => (
                         <option key={sala.id} value={sala.id}>
@@ -322,15 +338,17 @@ function Funciones() {
                     type="button"
                     className="btn btn-success"
                     onClick={idEditar ? actualizarFuncion : guardarFuncion}
+                    disabled={guardando}
                   >
                     <i className={`bi ${idEditar ? "bi-pencil-square" : "bi-save-fill"} me-2`}></i>
-                    {idEditar ? "Actualizar" : "Guardar"}
+                    {guardando ? "Guardando..." : idEditar ? "Actualizar" : "Guardar"}
                   </button>
 
                   <button
                     type="button"
                     className="btn btn-secondary ms-2"
                     onClick={limpiarFormulario}
+                    disabled={guardando}
                   >
                     <i className="bi bi-eraser-fill me-2"></i>
                     Limpiar

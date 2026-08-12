@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import api from "../../api/axios";
 import Confirmacion from "../../components/confirmacion/confirmacion";
@@ -23,6 +23,8 @@ function Salas() {
   const [busqueda, setBusqueda] = useState("");
   const [mensaje, setMensaje] = useState(null);
   const [salaEliminar, setSalaEliminar] = useState(null);
+  const [guardando, setGuardando] = useState(false);
+  const guardandoRef = useRef(false);
 
   const cargarDatos = async () => {
     try {
@@ -82,9 +84,12 @@ function Salas() {
   });
 
   const guardarSala = async () => {
-    if (!validarFormulario()) {
+    if (guardandoRef.current || !validarFormulario()) {
       return;
     }
+
+    guardandoRef.current = true;
+    setGuardando(true);
 
     try {
       await api.post("/salas/", datosSala());
@@ -98,6 +103,9 @@ function Salas() {
           obtenerMensajeError(error, "La sala no pudo registrarse."),
         ),
       );
+    } finally {
+      guardandoRef.current = false;
+      setGuardando(false);
     }
   };
 
@@ -110,9 +118,12 @@ function Salas() {
   };
 
   const actualizarSala = async () => {
-    if (!validarFormulario()) {
+    if (guardandoRef.current || !validarFormulario()) {
       return;
     }
+
+    guardandoRef.current = true;
+    setGuardando(true);
 
     try {
       await api.put(`/salas/${idEditar}`, datosSala());
@@ -126,6 +137,9 @@ function Salas() {
           obtenerMensajeError(error, "La sala no pudo actualizarse."),
         ),
       );
+    } finally {
+      guardandoRef.current = false;
+      setGuardando(false);
     }
   };
 
@@ -232,15 +246,17 @@ function Salas() {
                     type="button"
                     className="btn btn-success"
                     onClick={idEditar ? actualizarSala : guardarSala}
+                    disabled={guardando}
                   >
                     <i className={`bi ${idEditar ? "bi-pencil-square" : "bi-save-fill"} me-2`}></i>
-                    {idEditar ? "Actualizar" : "Guardar"}
+                    {guardando ? "Guardando..." : idEditar ? "Actualizar" : "Guardar"}
                   </button>
 
                   <button
                     type="button"
                     className="btn btn-secondary ms-2"
                     onClick={limpiarFormulario}
+                    disabled={guardando}
                   >
                     <i className="bi bi-eraser-fill me-2"></i>
                     Limpiar

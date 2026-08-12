@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import api from "../../api/axios";
 import Confirmacion from "../../components/confirmacion/confirmacion";
@@ -25,6 +25,8 @@ function Peliculas() {
   const [busqueda, setBusqueda] = useState("");
   const [mensaje, setMensaje] = useState(null);
   const [peliculaEliminar, setPeliculaEliminar] = useState(null);
+  const [guardando, setGuardando] = useState(false);
+  const guardandoRef = useRef(false);
 
   const cargarPeliculas = async () => {
     try {
@@ -76,9 +78,12 @@ function Peliculas() {
   });
 
   const guardarPelicula = async () => {
-    if (!validarFormulario()) {
+    if (guardandoRef.current || !validarFormulario()) {
       return;
     }
+
+    guardandoRef.current = true;
+    setGuardando(true);
 
     try {
       await api.post("/peliculas/", datosPelicula());
@@ -92,6 +97,9 @@ function Peliculas() {
           obtenerMensajeError(error, "La pelicula no pudo registrarse."),
         ),
       );
+    } finally {
+      guardandoRef.current = false;
+      setGuardando(false);
     }
   };
 
@@ -105,9 +113,12 @@ function Peliculas() {
   };
 
   const actualizarPelicula = async () => {
-    if (!validarFormulario()) {
+    if (guardandoRef.current || !validarFormulario()) {
       return;
     }
+
+    guardandoRef.current = true;
+    setGuardando(true);
 
     try {
       await api.put(`/peliculas/${idEditar}`, datosPelicula());
@@ -121,6 +132,9 @@ function Peliculas() {
           obtenerMensajeError(error, "La pelicula no pudo actualizarse."),
         ),
       );
+    } finally {
+      guardandoRef.current = false;
+      setGuardando(false);
     }
   };
 
@@ -239,15 +253,17 @@ function Peliculas() {
                     type="button"
                     className="btn btn-success"
                     onClick={idEditar ? actualizarPelicula : guardarPelicula}
+                    disabled={guardando}
                   >
                     <i className={`bi ${idEditar ? "bi-pencil-square" : "bi-save-fill"} me-2`}></i>
-                    {idEditar ? "Actualizar" : "Guardar"}
+                    {guardando ? "Guardando..." : idEditar ? "Actualizar" : "Guardar"}
                   </button>
 
                   <button
                     type="button"
                     className="btn btn-secondary ms-2"
                     onClick={limpiarFormulario}
+                    disabled={guardando}
                   >
                     <i className="bi bi-eraser-fill me-2"></i>
                     Limpiar
