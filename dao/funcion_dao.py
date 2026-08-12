@@ -1,5 +1,5 @@
 import psycopg2
-from config.base_datos import obtener_conexion
+from config.base_datos import conexion_bd
 from config.logger import Logger
 from modelos.funcion import Funcion
 
@@ -24,11 +24,10 @@ class FuncionDAO:
         self.__log = Logger()
 
     def buscar_por_id(self, funcion_id):
-        conn = obtener_conexion()
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM funcion WHERE id_funcion = %s", (funcion_id,))
-        fila = cursor.fetchone()
-        conn.close()
+        with conexion_bd() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM funcion WHERE id_funcion = %s", (funcion_id,))
+            fila = cursor.fetchone()
         return self.__fila_a_funcion(fila) if fila else None
 
     def insertar(self, funcion, pelicula_dao, sala_dao):
@@ -38,39 +37,36 @@ class FuncionDAO:
         if sala_dao is not None and not sala_dao.buscar_por_id(funcion.id_sala):
             self.__log.error(f"Funcion invalida: sala ID={funcion.id_sala} no existe")
             raise ReferenciaInvalidaError(f"Sala ID={funcion.id_sala} no encontrada")
-        conn = obtener_conexion()
-        cursor = conn.cursor()
-        try:
-            cursor.execute(
-                """
-                INSERT INTO funcion (id_pelicula, id_sala, fecha_funcion, hora, precio)
-                VALUES (%s, %s, %s, %s, %s)
-                RETURNING id_funcion
-                """,
-                (
-                    funcion.id_pelicula,
-                    funcion.id_sala,
-                    funcion.fecha_funcion,
-                    funcion.hora,
-                    funcion.precio,
-                ),
-            )
-            funcion.id = cursor.fetchone()["id_funcion"]
-            conn.commit()
-        except psycopg2.IntegrityError:
-            conn.rollback()
-            conn.close()
-            raise ReferenciaInvalidaError("Pelicula o sala no encontrada")
-        conn.close()
+        with conexion_bd() as conn:
+            cursor = conn.cursor()
+            try:
+                cursor.execute(
+                    """
+                    INSERT INTO funcion (id_pelicula, id_sala, fecha_funcion, hora, precio)
+                    VALUES (%s, %s, %s, %s, %s)
+                    RETURNING id_funcion
+                    """,
+                    (
+                        funcion.id_pelicula,
+                        funcion.id_sala,
+                        funcion.fecha_funcion,
+                        funcion.hora,
+                        funcion.precio,
+                    ),
+                )
+                funcion.id = cursor.fetchone()["id_funcion"]
+                conn.commit()
+            except psycopg2.IntegrityError:
+                conn.rollback()
+                raise ReferenciaInvalidaError("Pelicula o sala no encontrada")
         self.__log.info(f"Funcion agregada: ID={funcion.id}")
         return funcion
 
     def obtener_todos(self):
-        conn = obtener_conexion()
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM funcion ORDER BY fecha_funcion, hora, id_funcion")
-        filas = cursor.fetchall()
-        conn.close()
+        with conexion_bd() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM funcion ORDER BY fecha_funcion, hora, id_funcion")
+            filas = cursor.fetchall()
         return [self.__fila_a_funcion(fila) for fila in filas]
 
     def actualizar(self, funcion_id, id_pelicula=None, id_sala=None, fecha_funcion=None, hora=None, precio=None, pelicula_dao=None, sala_dao=None):
@@ -92,30 +88,28 @@ class FuncionDAO:
             funcion.hora = hora
         if precio is not None:
             funcion.precio = precio
-        conn = obtener_conexion()
-        cursor = conn.cursor()
-        try:
-            cursor.execute(
-                """
-                UPDATE funcion
-                SET id_pelicula=%s, id_sala=%s, fecha_funcion=%s, hora=%s, precio=%s
-                WHERE id_funcion=%s
-                """,
-                (
-                    funcion.id_pelicula,
-                    funcion.id_sala,
-                    funcion.fecha_funcion,
-                    funcion.hora,
-                    funcion.precio,
-                    funcion_id,
-                ),
-            )
-            conn.commit()
-        except psycopg2.IntegrityError:
-            conn.rollback()
-            conn.close()
-            raise ReferenciaInvalidaError("Pelicula o sala no encontrada")
-        conn.close()
+        with conexion_bd() as conn:
+            cursor = conn.cursor()
+            try:
+                cursor.execute(
+                    """
+                    UPDATE funcion
+                    SET id_pelicula=%s, id_sala=%s, fecha_funcion=%s, hora=%s, precio=%s
+                    WHERE id_funcion=%s
+                    """,
+                    (
+                        funcion.id_pelicula,
+                        funcion.id_sala,
+                        funcion.fecha_funcion,
+                        funcion.hora,
+                        funcion.precio,
+                        funcion_id,
+                    ),
+                )
+                conn.commit()
+            except psycopg2.IntegrityError:
+                conn.rollback()
+                raise ReferenciaInvalidaError("Pelicula o sala no encontrada")
         self.__log.info(f"Funcion actualizada: ID={funcion_id}")
         return funcion
 
@@ -124,26 +118,23 @@ class FuncionDAO:
         if not funcion:
             self.__log.error(f"Eliminar fallido: Funcion ID={funcion_id} no existe")
             raise FuncionNoEncontradaError(funcion_id)
-        conn = obtener_conexion()
-        cursor = conn.cursor()
-        try:
-            cursor.execute("DELETE FROM funcion WHERE id_funcion = %s", (funcion_id,))
-            conn.commit()
-        except psycopg2.IntegrityError:
-            conn.rollback()
-            conn.close()
-            self.__log.warning(f"Eliminar fallido: Funcion ID={funcion_id} tiene detalles asociados")
-            raise FuncionConDetallesError(funcion_id)
-        conn.close()
+        with conexion_bd() as conn:
+            cursor = conn.cursor()
+            try:
+                cursor.execute("DELETE FROM funcion WHERE id_funcion = %s", (funcion_id,))
+                conn.commit()
+            except psycopg2.IntegrityError:
+                conn.rollback()
+                self.__log.warning(f"Eliminar fallido: Funcion ID={funcion_id} tiene detalles asociados")
+                raise FuncionConDetallesError(funcion_id)
         self.__log.info(f"Funcion eliminada: ID={funcion_id}")
         return True
 
     def total(self):
-        conn = obtener_conexion()
-        cursor = conn.cursor()
-        cursor.execute("SELECT COUNT(*) AS total FROM funcion")
-        total = cursor.fetchone()["total"]
-        conn.close()
+        with conexion_bd() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT COUNT(*) AS total FROM funcion")
+            total = cursor.fetchone()["total"]
         return total
 
     def __fila_a_funcion(self, fila):
