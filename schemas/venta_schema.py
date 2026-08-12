@@ -1,10 +1,19 @@
 from datetime import datetime
 from pydantic import BaseModel
 from typing import Optional
+from schemas.detalle_venta_schema import DetalleVentaRespuesta
 
 
 class VentaCrear(BaseModel):
     id_usuario: int
+    fecha_compra: Optional[datetime] = None
+
+
+class VentaConBoletoCrear(BaseModel):
+    id_usuario: int
+    id_funcion: int
+    asiento: str
+    codigo_boleto: str
     fecha_compra: Optional[datetime] = None
 
 
@@ -17,3 +26,8 @@ class VentaRespuesta(BaseModel):
     id: int
     id_usuario: int
     fecha_compra: datetime
+
+
+class VentaConBoletoRespuesta(BaseModel):
+    venta: VentaRespuesta
+    detalle: DetalleVentaRespuesta

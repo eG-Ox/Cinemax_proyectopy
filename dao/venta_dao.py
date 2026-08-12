@@ -1,6 +1,7 @@
 import psycopg2
 from config.base_datos import conexion_bd
 from config.logger import Logger
+from dao.detalle_venta_dao import ReferenciaDetalleInvalidaError
 from modelos.venta import Venta
 
 
@@ -49,6 +50,43 @@ class VentaDAO:
                 raise ReferenciaUsuarioInvalidaError(venta.id_usuario)
         self.__log.info(f"Venta agregada: ID={venta.id}")
         return venta
+
+    def insertar_con_detalle(self, venta, detalle, usuario_dao=None, funcion_dao=None):
+        if usuario_dao is not None and not usuario_dao.buscar_por_id(venta.id_usuario):
+            self.__log.error(f"Venta invalida: usuario ID={venta.id_usuario} no existe")
+            raise ReferenciaUsuarioInvalidaError(venta.id_usuario)
+        if funcion_dao is not None and not funcion_dao.buscar_por_id(detalle.id_funcion):
+            self.__log.error(f"Detalle invalido: funcion ID={detalle.id_funcion} no existe")
+            raise ReferenciaDetalleInvalidaError(f"Funcion ID={detalle.id_funcion} no encontrada")
+
+        detalle.asiento = detalle.asiento.strip().upper()
+        detalle.codigo_boleto = detalle.codigo_boleto.strip().upper()
+
+        with conexion_bd() as conn:
+            cursor = conn.cursor()
+            try:
+                cursor.execute(
+                    "INSERT INTO venta (id_usuario, fecha_compra) VALUES (%s, %s) RETURNING id_venta",
+                    (venta.id_usuario, venta.fecha_compra),
+                )
+                venta.id = cursor.fetchone()["id_venta"]
+                detalle.id_venta = venta.id
+                cursor.execute(
+                    """
+                    INSERT INTO detalle_venta (id_venta, id_funcion, asiento, codigo_boleto)
+                    VALUES (%s, %s, %s, %s)
+                    RETURNING id_detalle
+                    """,
+                    (detalle.id_venta, detalle.id_funcion, detalle.asiento, detalle.codigo_boleto),
+                )
+                detalle.id = cursor.fetchone()["id_detalle"]
+                conn.commit()
+            except psycopg2.IntegrityError:
+                conn.rollback()
+                raise ReferenciaDetalleInvalidaError("No se pudo registrar la venta con boleto")
+
+        self.__log.info(f"Venta con boleto agregada: Venta ID={venta.id}, Detalle ID={detalle.id}")
+        return venta, detalle
 
     def obtener_todos(self):
         with conexion_bd() as conn:

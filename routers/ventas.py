@@ -1,5 +1,7 @@
 from datetime import datetime
 from fastapi import APIRouter, HTTPException
+from dao.detalle_venta_dao import ReferenciaDetalleInvalidaError
+from dao.funcion_dao import FuncionDAO
 from dao.usuario_dao import UsuarioDAO
 from dao.venta_dao import (
     ReferenciaUsuarioInvalidaError,
@@ -7,12 +9,20 @@ from dao.venta_dao import (
     VentaDAO,
     VentaNoEncontradaError,
 )
+from modelos.detalle_venta import DetalleVenta
 from modelos.venta import Venta
-from schemas.venta_schema import VentaActualizar, VentaCrear, VentaRespuesta
+from schemas.venta_schema import (
+    VentaActualizar,
+    VentaConBoletoCrear,
+    VentaConBoletoRespuesta,
+    VentaCrear,
+    VentaRespuesta,
+)
 
 router = APIRouter(prefix="/ventas", tags=["Ventas"])
 dao = VentaDAO()
 udao = UsuarioDAO()
+fdao = FuncionDAO()
 
 
 @router.get("/", response_model=list[VentaRespuesta])
@@ -45,6 +55,30 @@ def crear_venta(datos: VentaCrear):
         return venta.to_dict()
     except ReferenciaUsuarioInvalidaError as ex:
         raise HTTPException(status_code=404, detail=str(ex))
+
+
+@router.post("/con-boleto", response_model=VentaConBoletoRespuesta, status_code=201)
+def crear_venta_con_boleto(datos: VentaConBoletoCrear):
+    try:
+        venta, detalle = dao.insertar_con_detalle(
+            Venta(datos.id_usuario, datos.fecha_compra or datetime.now()),
+            DetalleVenta(
+                None,
+                datos.id_funcion,
+                datos.asiento,
+                datos.codigo_boleto,
+            ),
+            udao,
+            fdao,
+        )
+        return {
+            "venta": venta.to_dict(),
+            "detalle": detalle.to_dict(),
+        }
+    except ReferenciaUsuarioInvalidaError as ex:
+        raise HTTPException(status_code=404, detail=str(ex))
+    except ReferenciaDetalleInvalidaError as ex:
+        raise HTTPException(status_code=400, detail=str(ex))
 
 
 @router.put("/{venta_id}", response_model=VentaRespuesta)
