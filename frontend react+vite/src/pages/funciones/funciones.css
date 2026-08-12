@@ -1,0 +1,8 @@
+.funciones-contenido .card-header i {
+  color: var(--primary);
+}
+
+.funciones-contenido .table td:nth-child(2) {
+  color: var(--heading);
+  font-weight: 650;
+}

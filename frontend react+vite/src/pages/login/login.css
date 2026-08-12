@@ -1,0 +1,82 @@
+.login-container {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.login-panel {
+  background: rgba(16, 24, 38, 0.95);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  max-width: 440px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.login-marca {
+  align-items: center;
+  background:
+    radial-gradient(circle at top, rgba(225, 29, 72, 0.24), transparent 16rem),
+    #0b1220;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 36px 28px 28px;
+  text-align: center;
+}
+
+.login-logo {
+  height: 126px;
+  margin-bottom: 16px;
+  width: 126px;
+}
+
+.login-marca h1 {
+  color: var(--heading);
+  font-size: 38px;
+  font-weight: 900;
+  margin: 0;
+}
+
+.login-marca p {
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+.login-formulario {
+  padding: 30px;
+}
+
+.login-formulario h2 {
+  color: var(--heading);
+  font-size: 25px;
+  font-weight: 800;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+@media (max-width: 576px) {
+  .login-container {
+    padding: 16px;
+  }
+
+  .login-marca {
+    padding: 30px 22px 24px;
+  }
+
+  .login-logo {
+    height: 104px;
+    width: 104px;
+  }
+
+  .login-marca h1 {
+    font-size: 32px;
+  }
+
+  .login-formulario {
+    padding: 24px;
+  }
+}

@@ -1,0 +1,25 @@
+.ventas-contenido .card-header i {
+  color: var(--green);
+}
+
+.ventas-header {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.filtro-usuario {
+  max-width: 260px;
+}
+
+@media (max-width: 768px) {
+  .ventas-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .filtro-usuario {
+    max-width: none;
+  }
+}

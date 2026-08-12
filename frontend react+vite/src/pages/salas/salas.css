@@ -1,0 +1,8 @@
+.salas-contenido .card-header i {
+  color: var(--cyan);
+}
+
+.salas-contenido .table td:nth-child(2) {
+  color: var(--heading);
+  font-weight: 650;
+}

@@ -1,0 +1,130 @@
+.sidebar {
+  background: linear-gradient(180deg, #0b1220 0%, #111827 100%);
+  border-right: 1px solid var(--border);
+  box-shadow: 8px 0 24px rgba(0, 0, 0, 0.28);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  left: 0;
+  position: fixed;
+  top: 0;
+  width: 260px;
+  z-index: 1000;
+}
+
+.logo-container {
+  border-bottom: 1px solid var(--border);
+  padding: 24px 20px;
+  text-align: center;
+}
+
+.logo-container a {
+  display: contents;
+}
+
+.logo {
+  height: 88px;
+  margin-bottom: 10px;
+  width: 88px;
+}
+
+.logo-container h2 {
+  color: var(--heading);
+  font-size: 24px;
+  font-weight: 800;
+  margin: 0;
+}
+
+.logo-container p {
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 6px;
+}
+
+.sidebar nav {
+  margin-top: 18px;
+}
+
+.sidebar ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sidebar li {
+  margin: 7px 14px;
+}
+
+.sidebar a {
+  align-items: center;
+  border-radius: 8px;
+  color: var(--text);
+  display: flex;
+  font-size: 16px;
+  font-weight: 650;
+  gap: 13px;
+  padding: 12px 14px;
+  text-decoration: none;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.sidebar a:hover {
+  background: rgba(225, 29, 72, 0.16);
+  color: var(--heading);
+  transform: translateX(2px);
+}
+
+.sidebar i {
+  color: var(--cyan);
+  font-size: 19px;
+  width: 22px;
+}
+
+.boton-menu {
+  background: var(--primary);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  display: none;
+  font-size: 24px;
+  height: 44px;
+  left: 15px;
+  position: fixed;
+  top: 15px;
+  width: 44px;
+  z-index: 10001;
+}
+
+@media (max-width: 992px) {
+  .sidebar {
+    width: 220px;
+  }
+
+  .logo {
+    height: 74px;
+    width: 74px;
+  }
+
+  .sidebar a {
+    font-size: 15px;
+    padding: 11px 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .boton-menu {
+    display: block;
+  }
+
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    width: 260px;
+  }
+
+  .sidebar.menu-abierto {
+    transform: translateX(0);
+  }
+}

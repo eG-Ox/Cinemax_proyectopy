@@ -1,0 +1,25 @@
+.detalles-contenido .card-header i {
+  color: var(--gold);
+}
+
+.boletos-header {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.filtro-venta {
+  max-width: 300px;
+}
+
+@media (max-width: 768px) {
+  .boletos-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .filtro-venta {
+    max-width: none;
+  }
+}

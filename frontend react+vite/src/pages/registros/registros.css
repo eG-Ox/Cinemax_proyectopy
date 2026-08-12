@@ -1,0 +1,36 @@
+.registros-header {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.registros-header h4 {
+  color: var(--heading);
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.registros-header p {
+  color: var(--muted);
+}
+
+.registros-header i {
+  color: var(--cyan);
+}
+
+.acciones-registros {
+  display: flex;
+  gap: 10px;
+}
+
+@media (max-width: 768px) {
+  .registros-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .acciones-registros {
+    flex-direction: column;
+  }
+}

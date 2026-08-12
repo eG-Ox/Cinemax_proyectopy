@@ -1,0 +1,7 @@
+.usuarios-contenido .card-header i {
+  color: var(--cyan);
+}
+
+.usuarios-contenido .table td:nth-child(3) {
+  color: var(--muted);
+}
