@@ -1,12 +1,21 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from config.base_datos import inicializar
 from routers import detalles_venta, funciones, peliculas, registros, salas, usuarios, ventas
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    inicializar()
+    yield
+
 app = FastAPI(
     title="Sistema de Gestion de Cine Cinemax",
     version="1.0",
     description="API REST para gestion de usuarios, peliculas, salas, funciones, ventas y boletos",
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -15,8 +24,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-inicializar()
 
 app.include_router(usuarios.router)
 app.include_router(peliculas.router)
