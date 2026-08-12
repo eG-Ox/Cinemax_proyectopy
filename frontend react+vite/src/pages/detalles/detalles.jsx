@@ -21,6 +21,7 @@ function DetallesVenta() {
   const [peliculas, setPeliculas] = useState([]);
   const [salas, setSalas] = useState([]);
   const [idVenta, setIdVenta] = useState("");
+  const [idUsuario, setIdUsuario] = useState("");
   const [idFuncion, setIdFuncion] = useState("");
   const [asiento, setAsiento] = useState("");
   const [codigoBoleto, setCodigoBoleto] = useState("");
@@ -113,14 +114,25 @@ function DetallesVenta() {
   const limpiarFormulario = () => {
     setIdEditar(null);
     setIdVenta("");
+    setIdUsuario("");
     setIdFuncion("");
     setAsiento("");
     setCodigoBoleto("");
   };
 
   const validarFormulario = () => {
-    if (!idVenta || !idFuncion || asiento.trim() === "" || codigoBoleto.trim() === "") {
-      setMensaje(mensajeInfo("Campos incompletos", "Complete venta, funcion, asiento y codigo."));
+    if (idEditar && !idVenta) {
+      setMensaje(mensajeInfo("Venta requerida", "Seleccione la venta del boleto."));
+      return false;
+    }
+
+    if (!idEditar && !idUsuario) {
+      setMensaje(mensajeInfo("Usuario requerido", "Seleccione el usuario de la venta."));
+      return false;
+    }
+
+    if (!idFuncion || asiento.trim() === "" || codigoBoleto.trim() === "") {
+      setMensaje(mensajeInfo("Campos incompletos", "Complete funcion, asiento y codigo."));
       return false;
     }
 
@@ -131,6 +143,13 @@ function DetallesVenta() {
 
     return true;
   };
+
+  const datosVentaConBoleto = () => ({
+    id_usuario: Number(idUsuario),
+    id_funcion: Number(idFuncion),
+    asiento: asiento.trim().toUpperCase(),
+    codigo_boleto: codigoBoleto.trim().toUpperCase(),
+  });
 
   const datosDetalle = () => ({
     id_venta: Number(idVenta),
@@ -145,10 +164,10 @@ function DetallesVenta() {
     }
 
     try {
-      await api.post("/detalles-venta/", datosDetalle());
+      await api.post("/ventas/con-boleto", datosVentaConBoleto());
       await cargarDatos();
       limpiarFormulario();
-      setMensaje(mensajeExito("Registro exitoso", "Boleto registrado correctamente."));
+      setMensaje(mensajeExito("Registro exitoso", "Venta y boleto registrados correctamente."));
     } catch (error) {
       setMensaje(
         mensajeError(
@@ -160,8 +179,10 @@ function DetallesVenta() {
   };
 
   const editarDetalle = (detalle) => {
+    const venta = ventasPorId.get(detalle.id_venta);
     setIdEditar(detalle.id);
     setIdVenta(String(detalle.id_venta));
+    setIdUsuario(venta ? String(venta.id_usuario) : "");
     setIdFuncion(String(detalle.id_funcion));
     setAsiento(detalle.asiento);
     setCodigoBoleto(detalle.codigo_boleto);
@@ -266,29 +287,50 @@ function DetallesVenta() {
                 <div className="card-header">
                   <h5>
                     <i className={`bi ${idEditar ? "bi-pencil-square" : "bi-ticket-perforated-fill"} me-2`}></i>
-                    {idEditar ? "Editar Boleto" : "Registrar Boleto"}
+                    {idEditar ? "Editar Boleto" : "Registrar Venta y Boleto"}
                   </h5>
                 </div>
 
                 <div className="card-body">
-                  <div className="mb-3">
-                    <label className="form-label" htmlFor="ventaDetalle">
-                      Venta
-                    </label>
-                    <select
-                      id="ventaDetalle"
-                      className="form-select"
-                      value={idVenta}
-                      onChange={(event) => setIdVenta(event.target.value)}
-                    >
-                      <option value="">Seleccionar venta</option>
-                      {ventas.map((venta) => (
-                        <option key={venta.id} value={venta.id}>
-                          {descripcionVenta(venta)}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  {idEditar ? (
+                    <div className="mb-3">
+                      <label className="form-label" htmlFor="ventaDetalle">
+                        Venta
+                      </label>
+                      <select
+                        id="ventaDetalle"
+                        className="form-select"
+                        value={idVenta}
+                        onChange={(event) => setIdVenta(event.target.value)}
+                      >
+                        <option value="">Seleccionar venta</option>
+                        {ventas.map((venta) => (
+                          <option key={venta.id} value={venta.id}>
+                            {descripcionVenta(venta)}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ) : (
+                    <div className="mb-3">
+                      <label className="form-label" htmlFor="usuarioDetalle">
+                        Usuario
+                      </label>
+                      <select
+                        id="usuarioDetalle"
+                        className="form-select"
+                        value={idUsuario}
+                        onChange={(event) => setIdUsuario(event.target.value)}
+                      >
+                        <option value="">Seleccionar usuario</option>
+                        {usuarios.map((usuario) => (
+                          <option key={usuario.id} value={usuario.id}>
+                            {usuario.nombres_usuario}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
 
                   <div className="mb-3">
                     <label className="form-label" htmlFor="funcionDetalle">
