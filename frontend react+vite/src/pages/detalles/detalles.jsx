@@ -127,7 +127,7 @@ function DetallesVenta() {
     }
 
     if (!idEditar && !idUsuario) {
-      setMensaje(mensajeInfo("Usuario requerido", "Seleccione el usuario de la venta."));
+      setMensaje(mensajeInfo("Usuario requerido", "Seleccione el usuario del boleto."));
       return false;
     }
 
@@ -167,7 +167,7 @@ function DetallesVenta() {
       await api.post("/ventas/con-boleto", datosVentaConBoleto());
       await cargarDatos();
       limpiarFormulario();
-      setMensaje(mensajeExito("Registro exitoso", "Venta y boleto registrados correctamente."));
+      setMensaje(mensajeExito("Registro exitoso", "Boleto registrado correctamente."));
     } catch (error) {
       setMensaje(
         mensajeError(
@@ -287,7 +287,7 @@ function DetallesVenta() {
                 <div className="card-header">
                   <h5>
                     <i className={`bi ${idEditar ? "bi-pencil-square" : "bi-ticket-perforated-fill"} me-2`}></i>
-                    {idEditar ? "Editar Boleto" : "Registrar Venta y Boleto"}
+                    {idEditar ? "Editar Boleto" : "Registrar Boleto"}
                   </h5>
                 </div>
 
@@ -381,6 +381,17 @@ function DetallesVenta() {
 
                   {idFuncion && (
                     <div className="datos-resumen mb-3">
+                      {(() => {
+                        const funcion = funcionesPorId.get(Number(idFuncion));
+                        const sala = salasPorId.get(funcion?.id_sala);
+
+                        return (
+                          <span>
+                            <strong>Disponibles:</strong>{" "}
+                            {sala?.asientos_disponibles ?? sala?.capacidad ?? 0} asientos
+                          </span>
+                        );
+                      })()}
                       <span>
                         <strong>Funcion:</strong>{" "}
                         {descripcionFuncion(funcionesPorId.get(Number(idFuncion)))}

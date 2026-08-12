@@ -62,6 +62,29 @@ function Funciones() {
     [salas],
   );
 
+  const salasRelacionadas = useMemo(() => {
+    if (!idPelicula) {
+      return [];
+    }
+
+    return salas.filter((sala) => sala.id_pelicula === Number(idPelicula));
+  }, [idPelicula, salas]);
+
+  useEffect(() => {
+    if (!idPelicula) {
+      setIdSala("");
+      return;
+    }
+
+    const salaSeleccionadaExiste = salasRelacionadas.some(
+      (sala) => String(sala.id) === idSala,
+    );
+
+    if (!salaSeleccionadaExiste) {
+      setIdSala(salasRelacionadas[0] ? String(salasRelacionadas[0].id) : "");
+    }
+  }, [idPelicula, idSala, salasRelacionadas]);
+
   const limpiarFormulario = () => {
     setIdEditar(null);
     setIdPelicula("");
@@ -76,6 +99,11 @@ function Funciones() {
 
     if (!idPelicula || !idSala || fechaFuncion === "" || hora === "" || precio === "") {
       setMensaje(mensajeInfo("Campos incompletos", "Complete pelicula, sala, fecha, hora y precio."));
+      return false;
+    }
+
+    if (salasRelacionadas.length === 0) {
+      setMensaje(mensajeInfo("Sala requerida", "Registre una sala asociada a la pelicula."));
       return false;
     }
 
@@ -231,11 +259,16 @@ function Funciones() {
                       className="form-select"
                       value={idSala}
                       onChange={(event) => setIdSala(event.target.value)}
+                      disabled={!idPelicula || salasRelacionadas.length === 0}
                     >
-                      <option value="">Seleccionar sala</option>
-                      {salas.map((sala) => (
+                      <option value="">
+                        {!idPelicula
+                          ? "Seleccione una pelicula primero"
+                          : "Seleccionar sala"}
+                      </option>
+                      {salasRelacionadas.map((sala) => (
                         <option key={sala.id} value={sala.id}>
-                          {sala.nombre_sala} ({sala.capacidad} asientos)
+                          {sala.nombre_sala} ({sala.asientos_disponibles ?? sala.capacidad}/{sala.capacidad} asientos)
                         </option>
                       ))}
                     </select>

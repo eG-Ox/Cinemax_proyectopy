@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import api from "../../api/axios";
 import Confirmacion from "../../components/confirmacion/confirmacion";
@@ -15,6 +15,8 @@ import "./salas.css";
 
 function Salas() {
   const [salas, setSalas] = useState([]);
+  const [peliculas, setPeliculas] = useState([]);
+  const [idPelicula, setIdPelicula] = useState("");
   const [nombreSala, setNombreSala] = useState("");
   const [capacidad, setCapacidad] = useState("");
   const [idEditar, setIdEditar] = useState(null);
@@ -22,10 +24,15 @@ function Salas() {
   const [mensaje, setMensaje] = useState(null);
   const [salaEliminar, setSalaEliminar] = useState(null);
 
-  const cargarSalas = async () => {
+  const cargarDatos = async () => {
     try {
-      const respuesta = await api.get("/salas/");
-      setSalas(respuesta.data);
+      const [respuestaSalas, respuestaPeliculas] = await Promise.all([
+        api.get("/salas/"),
+        api.get("/peliculas/"),
+      ]);
+
+      setSalas(respuestaSalas.data);
+      setPeliculas(respuestaPeliculas.data);
     } catch (error) {
       setMensaje(
         mensajeError(
@@ -37,11 +44,17 @@ function Salas() {
   };
 
   useEffect(() => {
-    cargarSalas();
+    cargarDatos();
   }, []);
+
+  const peliculasPorId = useMemo(
+    () => new Map(peliculas.map((pelicula) => [pelicula.id, pelicula])),
+    [peliculas],
+  );
 
   const limpiarFormulario = () => {
     setIdEditar(null);
+    setIdPelicula("");
     setNombreSala("");
     setCapacidad("");
   };
@@ -49,8 +62,8 @@ function Salas() {
   const validarFormulario = () => {
     const capacidadNumerica = Number(capacidad);
 
-    if (nombreSala.trim() === "" || capacidad === "") {
-      setMensaje(mensajeInfo("Campos incompletos", "Complete el nombre y la capacidad."));
+    if (!idPelicula || nombreSala.trim() === "" || capacidad === "") {
+      setMensaje(mensajeInfo("Campos incompletos", "Complete pelicula, nombre y capacidad."));
       return false;
     }
 
@@ -63,6 +76,7 @@ function Salas() {
   };
 
   const datosSala = () => ({
+    id_pelicula: Number(idPelicula),
     nombre_sala: nombreSala.trim(),
     capacidad: Number(capacidad),
   });
@@ -74,7 +88,7 @@ function Salas() {
 
     try {
       await api.post("/salas/", datosSala());
-      await cargarSalas();
+      await cargarDatos();
       limpiarFormulario();
       setMensaje(mensajeExito("Registro exitoso", "Sala registrada correctamente."));
     } catch (error) {
@@ -89,6 +103,7 @@ function Salas() {
 
   const editarSala = (sala) => {
     setIdEditar(sala.id);
+    setIdPelicula(sala.id_pelicula ? String(sala.id_pelicula) : "");
     setNombreSala(sala.nombre_sala);
     setCapacidad(String(sala.capacidad));
     setMensaje(null);
@@ -101,7 +116,7 @@ function Salas() {
 
     try {
       await api.put(`/salas/${idEditar}`, datosSala());
-      await cargarSalas();
+      await cargarDatos();
       limpiarFormulario();
       setMensaje(mensajeExito("Actualizacion exitosa", "Sala actualizada correctamente."));
     } catch (error) {
@@ -121,7 +136,7 @@ function Salas() {
 
     try {
       await api.delete(`/salas/${salaEliminar.id}`);
-      await cargarSalas();
+      await cargarDatos();
       setSalaEliminar(null);
       setMensaje(mensajeExito("Sala eliminada", "El registro fue eliminado correctamente."));
     } catch (error) {
@@ -136,10 +151,13 @@ function Salas() {
   };
 
   const salasFiltradas = salas.filter((sala) => {
+    const pelicula = peliculasPorId.get(sala.id_pelicula);
     const texto = busqueda.toLowerCase();
     return (
+      pelicula?.titulo.toLowerCase().includes(texto) ||
       sala.nombre_sala.toLowerCase().includes(texto) ||
-      String(sala.capacidad).includes(texto)
+      String(sala.capacidad).includes(texto) ||
+      String(sala.asientos_disponibles ?? sala.capacidad).includes(texto)
     );
   });
 
@@ -163,6 +181,25 @@ function Salas() {
                 </div>
 
                 <div className="card-body">
+                  <div className="mb-3">
+                    <label className="form-label" htmlFor="peliculaSala">
+                      Pelicula
+                    </label>
+                    <select
+                      id="peliculaSala"
+                      className="form-select"
+                      value={idPelicula}
+                      onChange={(event) => setIdPelicula(event.target.value)}
+                    >
+                      <option value="">Seleccionar pelicula</option>
+                      {peliculas.map((pelicula) => (
+                        <option key={pelicula.id} value={pelicula.id}>
+                          {pelicula.titulo}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
                   <div className="mb-3">
                     <label className="form-label" htmlFor="nombreSala">
                       Nombre de sala
@@ -229,7 +266,7 @@ function Salas() {
                       </span>
                       <input
                         className="form-control"
-                        placeholder="Buscar por nombre o capacidad..."
+                        placeholder="Buscar por pelicula, nombre o capacidad..."
                         value={busqueda}
                         onChange={(event) => setBusqueda(event.target.value)}
                       />
@@ -241,8 +278,10 @@ function Salas() {
                       <thead>
                         <tr>
                           <th>ID</th>
+                          <th>Pelicula</th>
                           <th>Sala</th>
                           <th>Capacidad</th>
+                          <th>Disponibles</th>
                           <th>Acciones</th>
                         </tr>
                       </thead>
@@ -250,7 +289,7 @@ function Salas() {
                       <tbody>
                         {salasFiltradas.length === 0 ? (
                           <tr>
-                            <td colSpan="4" className="empty-row">
+                            <td colSpan="6" className="empty-row">
                               {salas.length === 0
                                 ? "No existen salas registradas"
                                 : "No se encontraron salas con esa busqueda"}
@@ -260,8 +299,13 @@ function Salas() {
                           salasFiltradas.map((sala) => (
                             <tr key={sala.id}>
                               <td>{sala.id}</td>
+                              <td>
+                                {peliculasPorId.get(sala.id_pelicula)?.titulo ??
+                                  "Sin pelicula"}
+                              </td>
                               <td>{sala.nombre_sala}</td>
                               <td>{sala.capacidad} asientos</td>
+                              <td>{sala.asientos_disponibles ?? sala.capacidad} asientos</td>
                               <td>
                                 <div className="acciones-tabla">
                                   <button
