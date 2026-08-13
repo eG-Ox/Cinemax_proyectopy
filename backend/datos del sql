@@ -1,0 +1,70 @@
+INSERT INTO usuario (id_usuario, nombres_usuario, correo) VALUES
+(1, 'Juan Perez', 'juan.perez@mail.com'),
+(2, 'Maria Lopez', 'maria.lopez@mail.com'),
+(3, 'Carlos Ramos', 'carlos.ramos@mail.com'),
+(4, 'Ana Torres', 'ana.torres@mail.com'),
+(5, 'Luis Garcia', 'luis.garcia@mail.com'),
+(6, 'Sofia Vega', 'sofia.vega@mail.com'),
+(7, 'Diego Herrera', 'diego.herrera@mail.com'),
+(8, 'Valeria Soto', 'valeria.soto@mail.com'),
+(9, 'Miguel Castillo', 'miguel.castillo@mail.com'),
+(10, 'Camila Ruiz', 'camila.ruiz@mail.com');
+
+INSERT INTO pelicula (id_pelicula, titulo, genero, clasificacion, duracion) VALUES
+(1, 'Interestelar', 'Ciencia ficcion', 'PG-13', 169),
+(2, 'Avengers Endgame', 'Accion', 'PG-13', 181),
+(3, 'El Conjuro', 'Terror', '+14', 112),
+(4, 'Coco', 'Animacion', 'PG', 105),
+(5, 'Spider-Man No Way Home', 'Accion', 'PG-13', 148),
+(6, 'Barbie', 'Comedia', 'PG-13', 114),
+(7, 'Oppenheimer', 'Drama', '+14', 180),
+(8, 'Dune Parte Dos', 'Ciencia ficcion', 'PG-13', 166);
+
+INSERT INTO sala (id_sala, id_pelicula, nombre_sala, capacidad, asientos_disponibles) VALUES
+(1, 1, 'Sala 1', 100, 100),
+(2, 1, 'Sala 2', 80, 80),
+(3, 2, 'Sala 3', 120, 120),
+(4, 3, 'Sala 4', 70, 70),
+(5, 4, 'Sala 5', 90, 90),
+(6, 5, 'Sala 6', 110, 110),
+(7, 6, 'Sala 7', 95, 95),
+(8, 7, 'Sala 8', 85, 85),
+(9, 8, 'Sala 9', 100, 100),
+(10, 2, 'Sala 10', 75, 75);
+
+INSERT INTO funcion (id_funcion, id_pelicula, id_sala, fecha_funcion, hora, precio) VALUES
+(1, 1, 1, '2026-08-15', '18:30:00', 18.50),
+(2, 1, 2, '2026-08-15', '21:00:00', 20.00),
+(3, 2, 3, '2026-08-16', '19:00:00', 22.00),
+(4, 3, 4, '2026-08-16', '22:30:00', 17.00),
+(5, 4, 5, '2026-08-17', '16:00:00', 14.00),
+(6, 5, 6, '2026-08-17', '20:30:00', 20.00),
+(7, 6, 7, '2026-08-18', '18:00:00', 16.50),
+(8, 7, 8, '2026-08-18', '21:00:00', 23.00),
+(9, 8, 9, '2026-08-19', '20:00:00', 21.00),
+(10, 2, 10, '2026-08-19', '22:15:00', 21.50);
+
+INSERT INTO venta (id_venta, id_usuario, fecha_compra) VALUES
+(1, 1, NOW()),
+(2, 2, NOW()),
+(3, 3, NOW()),
+(4, 4, NOW()),
+(5, 5, NOW()),
+(6, 6, NOW()),
+(7, 7, NOW()),
+(8, 8, NOW()),
+(9, 9, NOW()),
+(10, 10, NOW());
+
+INSERT INTO detalle_venta (id_detalle, id_venta, id_funcion, asiento, codigo_boleto) VALUES
+(1, 1, 1, 'A1', 'BOL-001'),
+(2, 1, 1, 'A2', 'BOL-002'),
+(3, 2, 2, 'B1', 'BOL-003'),
+(4, 3, 3, 'C1', 'BOL-004'),
+(5, 4, 4, 'D1', 'BOL-005'),
+(6, 5, 5, 'E1', 'BOL-006'),
+(7, 6, 6, 'F1', 'BOL-007'),
+(8, 7, 7, 'G1', 'BOL-008'),
+(9, 8, 8, 'H1', 'BOL-009'),
+(10, 9, 9, 'I1', 'BOL-010'),
+(11, 10, 10, 'J1', 'BOL-011');
